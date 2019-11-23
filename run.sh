@@ -1,5 +1,5 @@
 #! /bin/bash
 
 pushd build/ > /dev/null
-./PiTerm
+./PiTerm $@
 popd > /dev/null
