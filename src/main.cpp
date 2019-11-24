@@ -4,6 +4,9 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <stdlib.h>
+
+#include <ncurses.h>
 
 #include "PiTerm.h"
 
@@ -84,29 +87,71 @@ main(int argc, char **argv)
 		return 0;
 	}
 
+    initscr();
+
 	char *port = argv[1];
 
-	printf("Trying to use port %s...\n", port);
+	mvprintw(0, 0, "Trying to use port %s...\n", port);
 
-	int fd = open (port, O_RDWR | O_NOCTTY | O_SYNC);
+	int fd = open(port, O_RDWR | O_NOCTTY | O_SYNC);
 	if (fd < 0)
 	{
         fprintf(stderr, "error %d opening %s: %s\n", errno, port, strerror(errno));
         return -1;
 	}
 
-	SetInterfaceAttribs(fd, B9600, 0);  // set speed to 9600 bps, 8n1 (no parity)
+	SetInterfaceAttribs(fd, B115200, 0);  // set speed to 115200 bps, 8n1 (no parity)
 	SetBlocking(fd, 0);                 // set non-blocking
 
-	printf("Port configured\n");
+#define TERM_BUFFER_SIZE (1024 * 1024)
 
-	char buffer[512];
-	int red;
-	while ((red = read(fd, buffer, 512)))
-	{
-		printf("%.*s", red, buffer);
-		write(fd, "I read some data!\n", 18);
-	}
+    char *termBuffer = (char*) malloc(TERM_BUFFER_SIZE);
+    unsigned termBufferSize = 0;
 
+    bool running = true;
+    while (running)
+    {
+        move(0, 0);
+        printw("PORT: %s\n", port);
+        printw("BAUD: 115200\n");
+        
+        if (termBufferSize >= TERM_BUFFER_SIZE)
+        {
+            termBufferSize = 0;
+            erase();
+        }
+
+        // We've read data from the UART
+        int bytesRead = read(fd, termBuffer + termBufferSize, TERM_BUFFER_SIZE - termBufferSize);
+        if (bytesRead)
+        {
+            printw("RX Rate: %d\n", bytesRead);
+            printw("Buffer: %d / %d\n", termBufferSize, TERM_BUFFER_SIZE);
+            
+            termBufferSize += bytesRead;
+
+            printw("~~~~~~~~~~~~~\n");
+            printw("%.*s", termBufferSize, termBuffer);
+        }
+
+        refresh();
+    }
+
+    free(termBuffer);
+	
+	// int red;
+	// while ((red = read(fd, outBuffer, 512)))
+	// {
+	// 	printf("%.*s", red, outBuffer);
+ //        red = read(0, inBuffer, 512);
+
+ //        if (red)
+ //        {
+ // //            printf("[DEBUG] %.*s\n", (int) red, inBuffer);
+ // //            write(fd, inBuffer, red);
+ // //        }
+	// // }
+
+    endwin();
 	return 0;
 }

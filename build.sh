@@ -4,17 +4,18 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CC_FLAGS="-Wall -Wextra -Werror"
+CC_FLAGS="-Wall -Wextra"
 CC_FLAGS_DEBUG="-g -O0 -DDEBUG"
 CC_FLAGS_REL="-O2"
 
 CXX_FLAGS="$CC_FLAGS"
 CXX_FLAGS_DEBUG="$CC_FLAGS_DEBUG"
-CXX_FLAGS_REL="$CXX_FLAGS_REL"
+CXX_FLAGS_REL="$CC_FLAGS_REL"
 
 LD_FLAGS="-Wall -Wextra -Werror"
 LD_FLAGS_DEBUG=""
 LD_FLAGS_REL="-flto"
+LD_LIBS="-lncurses"
 
 mkdir -p build/
 
@@ -36,7 +37,7 @@ for i in ../src/*.cpp; do
     $CXX -c $CXX_FLAGS $i -o $(basename $i).o
 done
 
-echo "$LD $LD_FLAGS *.o -o PiTerm"
-$LD $LD_FLAGS *.o -o PiTerm
+echo "$LD $LD_FLAGS *.o $LD_LIBS -o PiTerm"
+$CXX $LD_FLAGS *.o $LD_LIBS -o PiTerm
 
 popd > /dev/null
