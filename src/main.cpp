@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <ncurses.h>
 
@@ -91,8 +92,6 @@ main(int argc, char **argv)
 
 	char *port = argv[1];
 
-	mvprintw(0, 0, "Trying to use port %s...\n", port);
-
 	int fd = open(port, O_RDWR | O_NOCTTY | O_SYNC);
 	if (fd < 0)
 	{
@@ -103,54 +102,58 @@ main(int argc, char **argv)
 	SetInterfaceAttribs(fd, B115200, 0);  // set speed to 115200 bps, 8n1 (no parity)
 	SetBlocking(fd, 0);                 // set non-blocking
 
-#define TERM_BUFFER_SIZE (1024 * 1024)
+    int width, height;
+    getmaxyx(stdscr, height, width);
 
-    char *termBuffer = (char*) malloc(TERM_BUFFER_SIZE);
-    unsigned termBufferSize = 0;
+    
+    WINDOW *headerWindow = newwin(10, width - 1, 2, 0);
+    WINDOW *header = subwin(headerWindow, 9, width - 2, 2, 0);
+
+    box(headerWindow, 0, 0);
+
+    touchwin(headerWindow);
+    wrefresh(headerWindow);
+
+    WINDOW *termWindow   = newwin(height - 16, width - 1, 15, 0);
+    WINDOW *term = subwin(termWindow, height - 30, width - 2, 16, 0);
+
+    scrollok(term, true);
+
+#define BUFFER_SIZE (1024)
+    char buffer[BUFFER_SIZE];
 
     bool running = true;
     while (running)
     {
-        move(0, 0);
-        printw("PORT: %s\n", port);
-        printw("BAUD: 115200\n");
-        
-        if (termBufferSize >= TERM_BUFFER_SIZE)
+        int bytesRead = read(fd, buffer, BUFFER_SIZE);
+
+        if (bytesRead > 0)
         {
-            termBufferSize = 0;
-            erase();
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
+
+            int bitsPerSecond = bytesRead * 8;
+
+            mvwprintw(header, 1, 1, "BAUD: 115200");
+            mvwprintw(header, 2, 1, "RX Rate: %d", bitsPerSecond);
+
+            wrefresh(header);
+
+            wprintw(term, "[%d:%d:%d] %.*s",  tm.tm_hour, tm.tm_min, tm.tm_sec, bytesRead, buffer);
+
+            wrefresh(term);
         }
 
-        // We've read data from the UART
-        int bytesRead = read(fd, termBuffer + termBufferSize, TERM_BUFFER_SIZE - termBufferSize);
+        bytesRead = read(0, buffer, BUFFER_SIZE);
+
         if (bytesRead)
         {
-            printw("RX Rate: %d\n", bytesRead);
-            printw("Buffer: %d / %d\n", termBufferSize, TERM_BUFFER_SIZE);
-            
-            termBufferSize += bytesRead;
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
 
-            printw("~~~~~~~~~~~~~\n");
-            printw("%.*s", termBufferSize, termBuffer);
+            wprintw(term, "[%d:%d:%d][TX] %.*s",  tm.tm_hour, tm.tm_min, tm.tm_sec, bytesRead, buffer);
         }
-
-        refresh();
     }
-
-    free(termBuffer);
-	
-	// int red;
-	// while ((red = read(fd, outBuffer, 512)))
-	// {
-	// 	printf("%.*s", red, outBuffer);
- //        red = read(0, inBuffer, 512);
-
- //        if (red)
- //        {
- // //            printf("[DEBUG] %.*s\n", (int) red, inBuffer);
- // //            write(fd, inBuffer, red);
- // //        }
-	// // }
 
     endwin();
 	return 0;
