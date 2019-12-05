@@ -1,3 +1,7 @@
 @echo off
 
-wsl sudo ./run.sh %*
+pushd build\
+
+call PiTerm %*
+
+popd
