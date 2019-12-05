@@ -4,13 +4,9 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CC_FLAGS="-Wall -Wextra -Wno-int-to-pointer-cast"
-CC_FLAGS_DEBUG="-g -O0 -DDEBUG"
-CC_FLAGS_REL="-O2"
-
-CXX_FLAGS="$CC_FLAGS"
-CXX_FLAGS_DEBUG="$CC_FLAGS_DEBUG"
-CXX_FLAGS_REL="$CC_FLAGS_REL"
+CXX_FLAGS="-Wall -Wextra -Wno-int-to-pointer-cast"
+CXX_FLAGS_DEBUG="-g -O0 -DDEBUG"
+CXX_FLAGS_REL="-O2"
 
 LD_FLAGS="-Wall -Wextra"
 LD_FLAGS_DEBUG=""
@@ -23,11 +19,9 @@ pushd build/ > /dev/null
 
 rm -rf *.o
 
-set -x
-
+echo "main.cpp"
 $CXX -c $CXX_FLAGS ../src/main.cpp -o main.o
 $LD $LD_FLAGS main.o $LD_LIBS -o PiTerm
 
-set +x
-
+echo "Done..."
 popd > /dev/null

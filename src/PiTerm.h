@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define UNUSED(a) (void) a
+
 #if defined(DEBUG)
 	#define ASSERT(a) if ((a)) { *(volatile int *)0 = 0; }
 #else

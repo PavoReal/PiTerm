@@ -31,6 +31,7 @@ PLATFORM_INTERFACE_WRITE(InterfaceWrite)
     return bytesWritten;
 }
 
+// https://stackoverflow.com/questions/6947413/how-to-open-read-and-write-from-serial-port-in-c
 PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
 {
     LinuxTerminalState *state = (LinuxTerminalState*) term;

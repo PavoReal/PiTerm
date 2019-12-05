@@ -20,13 +20,9 @@
     #endif
 #endif
 
-// https://stackoverflow.com/questions/6947413/how-to-open-read-and-write-from-serial-port-in-c
-
 int
 main(int argc, char **argv)
 {
-	UNUSED(argc);
-
 	if (argc <= 1)
 	{
 		printf("I need a portname (ie /dev/ttyS4)!\n");
@@ -35,13 +31,11 @@ main(int argc, char **argv)
 
 	char *port = argv[1];
 
-    TERM platformTerm;
-	int errorCode = TermInit(&platformTerm, port);
-
-    if (errorCode != 0)
+    TERM term;
+    if (TermInit(&term, port) != 0)
     {
         fprintf(stderr, "Error during initial platform terminal configuration...\n");
-        return errorCode;
+        return 1;
     }
 
 #define BUFFER_SIZE (1024)
@@ -50,28 +44,29 @@ main(int argc, char **argv)
     bool running = true;
     while (running)
     {
-        int bytesRead = InterfaceRead(platformTerm, buffer, BUFFER_SIZE);
+        int bytesRead = InterfaceRead(term, buffer, BUFFER_SIZE);
 
         if (bytesRead > 0)
         {
-            TermHeaderStart(platformTerm);
+            TermHeaderStart(term);
+
             time_t t = time(NULL);
             struct tm tm = *localtime(&t);
 
             int bitsPerSecond = bytesRead * 8;
 
-            TermPrintPos(platformTerm, 1, 1, "BAUD: 115200");
-            TermPrintPos(platformTerm, 2, 1, "RX Rate: %d", bitsPerSecond);
+            TermPrintPos(term, 1, 1, "BAUD: 115200");
+            TermPrintPos(term, 2, 1, "RX Rate: %d", bitsPerSecond);
 
-            TermHeaderStop(platformTerm);
-            TermBodyStart(platformTerm);
+            TermHeaderStop(term);
+            TermBodyStart(term);
 
-            TermPrintf(platformTerm, "[%d:%d:%d] %.*s",  tm.tm_hour, tm.tm_min, tm.tm_sec, bytesRead, buffer);
+            TermPrintf(term, "[%d:%d:%d] %.*s",  tm.tm_hour, tm.tm_min, tm.tm_sec, bytesRead, buffer);
 
-            TermBodyStop(platformTerm);
+            TermBodyStop(term);
         }
     }
 
-    TermStop(platformTerm);
+    TermStop(term);
 	return 0;
 }
