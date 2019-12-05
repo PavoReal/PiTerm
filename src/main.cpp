@@ -100,11 +100,10 @@ main(int argc, char **argv)
 	}
 
 	SetInterfaceAttribs(fd, B115200, 0);  // set speed to 115200 bps, 8n1 (no parity)
-	SetBlocking(fd, 0);                 // set non-blocking
+	SetBlocking(fd, 0);                   // set non-blocking
 
     int width, height;
     getmaxyx(stdscr, height, width);
-
     
     WINDOW *headerWindow = newwin(10, width - 1, 2, 0);
     WINDOW *header = subwin(headerWindow, 9, width - 2, 2, 0);
@@ -114,7 +113,7 @@ main(int argc, char **argv)
     touchwin(headerWindow);
     wrefresh(headerWindow);
 
-    WINDOW *termWindow   = newwin(height - 16, width - 1, 15, 0);
+    WINDOW *termWindow = newwin(height - 16, width - 1, 15, 0);
     WINDOW *term = subwin(termWindow, height - 30, width - 2, 16, 0);
 
     scrollok(term, true);
