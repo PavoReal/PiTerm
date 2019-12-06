@@ -1,19 +1,32 @@
 #if !defined(PI_TERM_PLATFORM_LINUX_H)
 #define PI_TERM_PLATFORM_LINUX_H
 
-#include <ncurses.h>
-
-struct LinuxTerminalState
+struct LinuxInterfaceState
 {
 	int fd;
-
-	WINDOW *headerWindow;
-	WINDOW *header;
-
-	WINDOW *termWindow;
-	WINDOW *term;
-
-	WINDOW *activeWindow;
 };
 
+#if defined(TERM_GUI)
+	#include "imgui.h"
+
+	struct LinuxTerminalState
+	{
+		LinuxInterfaceState interface;
+	};
+#else
+	#include <ncurses.h>
+
+	struct LinuxTerminalState
+	{
+		LinuxInterfaceState interface;
+
+		WINDOW *headerWindow;
+		WINDOW *header;
+
+		WINDOW *termWindow;
+		WINDOW *term;
+
+		WINDOW *activeWindow;
+	};
+#endif
 #endif

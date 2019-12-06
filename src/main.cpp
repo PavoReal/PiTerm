@@ -5,16 +5,15 @@
 
 #if defined(_WIN32)
     #include "platform_win32.cpp"
-    #if defined(TERM_UI)
+    #if defined(TERM_GUI)
         #pragma message("Using IMGUI ui...")
     #else
-        #error WIN32 build requires TERM_UI...
+        #error WIN32 build requires TERM_GUI...
     #endif
 #else
     #include "platform_linux.cpp"
-    #if defined(TERM_UI)
+    #if defined(TERM_GUI)
         #pragma message("Using IMGUI ui...")
-        #error Linux IMGUI not yet supported
     #else
         #pragma message("Using ncurses ui...")
     #endif
