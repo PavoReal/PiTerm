@@ -19,6 +19,14 @@ pushd build/ > /dev/null
 
 rm -rf *.o
 
+echo "CXX main.cpp"
+$CXX -c $CXX_FLAGS ../src/main.cpp -o main.cpp.o
+
+if [ ! $? -eq 0 ]
+then
+	exit 1
+fi
+
 echo "CC gl3w.c"
 $CC -c $CXX_FLAGS ../src/gl3w.c -o glfw.c.o
 
@@ -27,9 +35,6 @@ for i in ../src/imgui*.cpp; do
     echo "CXX $(basename $i)"
 	$CXX -c $CXX_FLAGS $i -o $(basename $i).o
 done
-
-echo "CXX main.cpp"
-$CXX -c $CXX_FLAGS ../src/main.cpp -o main.cpp.o
 
 echo -n "Linking "
 for i in ./*.o; do

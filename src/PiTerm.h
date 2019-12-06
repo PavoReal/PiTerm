@@ -1,5 +1,5 @@
-#if !defined(PI_TERM_H)
-#define PI_TERM_H
+#if !defined(PI_Term_H)
+#define PI_Term_H
 
 #include <stdint.h>
 
@@ -21,28 +21,35 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
-typedef void* TERM;
+typedef void* Term;
+typedef void* Interface;
 
 //
 // Interface (UART) 
 //
-#define PLATFORM_INTERFACE_READ(name) int name(TERM term, u8 *buffer, u32 bufferSize)
-#define PLATFORM_INTERFACE_WRITE(name) int name(TERM term, u8 *buffer, u32 bufferSize)
-#define PLATFORM_INTERFACE_SET_ATTRIBS(name) int name(TERM term, int baud)
-#define PLATFORM_INTERFACE_SET_BLOCKING(name) int name(TERM term, bool shouldBlock)
+#define PLATFORM_INTERFACE_INIT(name) int name(Interface *_interface, char *portName)
+#define PLATFORM_INTERFACE_STOP(name) int name(Interface _interface)
+
+#define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
+#define PLATFORM_INTERFACE_WRITE(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
+#define PLATFORM_INTERFACE_SET_ATTRIBS(name) int name(Interface _interface, int baud)
+#define PLATFORM_INTERFACE_SET_BLOCKING(name) int name(Interface _interface, bool shouldBlock)
 
 //
 // Terminal (UI)
 //
-#define PLATFORM_TERM_INIT(name) int name(TERM *platformTerm, char *portName)
-#define PLATFORM_TERM_STOP(name) int name(TERM term)
+#define PLATFORM_TERM_INIT(name) int name(Term *_term)
+#define PLATFORM_TERM_STOP(name) int name(Term _term)
 
-#define PLATFORM_TERM_HEADER_START(name) int name(TERM term)
-#define PLATFORM_TERM_HEADER_STOP(name) int name(TERM term)
-#define PLATFORM_TERM_BODY_START(name) int name(TERM term)
-#define PLATFORM_TERM_BODY_STOP(name) int name(TERM term)
+#define PLATFORM_TERM_FRAME_START(name) int name(Term _term)
+#define PLATFORM_TERM_FRAME_STOP(name) int name(Term _term)
 
-#define PLATFORM_TERM_PRINTF(name) int name(TERM term, const char *fmt, ...)
-#define PLATFORM_TERM_PRINTPOS(name) int name(TERM term, u32 row, u32 col, const char *fmt, ...)
+#define PLATFORM_TERM_HEADER_START(name) int name(Term _term)
+#define PLATFORM_TERM_HEADER_STOP(name) int name(Term _term)
+#define PLATFORM_TERM_BODY_START(name) int name(Term _term)
+#define PLATFORM_TERM_BODY_STOP(name) int name(Term _term)
+
+#define PLATFORM_TERM_PRINTF(name) int name(Term _term, const char *fmt, ...)
+#define PLATFORM_TERM_PRINTPOS(name) int name(Term _term, u32 row, u32 col, const char *fmt, ...)
 
 #endif

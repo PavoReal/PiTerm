@@ -7,11 +7,16 @@ struct LinuxInterfaceState
 };
 
 #if defined(TERM_GUI)
+	#include <SDL.h>
 	#include "imgui.h"
 
 	struct LinuxTerminalState
 	{
 		LinuxInterfaceState interface;
+
+		SDL_Window *window;
+		SDL_GLContext glContext;
+		ImGuiIO io;
 	};
 #else
 	#include <ncurses.h>

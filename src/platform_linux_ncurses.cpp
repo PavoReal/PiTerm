@@ -5,18 +5,6 @@ PLATFORM_TERM_INIT(TermInit)
 
     initscr();
 
-    int fd = open(portName, O_RDWR | O_NOCTTY | O_SYNC);
-    if (fd < 0)
-    {
-        fprintf(stderr, "error %d opening %s: %s\n", errno, portName, strerror(errno));
-        return -1;
-    }
-
-    interface->fd = fd;
-
-    InterfaceSetAttribs(state, B115200);
-    InterfaceSetBlocking(state, false);
-
     int width, height;
     getmaxyx(stdscr, height, width);
 

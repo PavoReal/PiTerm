@@ -30,10 +30,17 @@ main(int argc, char **argv)
 
 	char *port = argv[1];
 
-    TERM term;
-    if (TermInit(&term, port) != 0)
+    Interface interface;
+    if (InterfaceInit(&interface, port) != 0)
     {
-        fprintf(stderr, "Error during initial platform terminal configuration...\n");
+        fprintf(stderr, "Error during initial interface init...\n");
+        return 1;
+    }
+
+    Term term;
+    if (TermInit(&term) != 0)
+    {
+        fprintf(stderr, "Error during initial terminal init..\n");
         return 1;
     }
 
@@ -43,10 +50,16 @@ main(int argc, char **argv)
     bool running = true;
     while (running)
     {
-        int bytesRead = InterfaceRead(term, buffer, BUFFER_SIZE);
+        int bytesRead = InterfaceRead(interface, buffer, BUFFER_SIZE);
 
         if (bytesRead > 0)
         {
+            if (TermFrameStart(term) != 0)
+            {
+                running = false;
+                break;
+            }
+
             TermHeaderStart(term);
 
             time_t t = time(NULL);
@@ -63,9 +76,12 @@ main(int argc, char **argv)
             TermPrintf(term, "[%d:%d:%d] %.*s",  tm.tm_hour, tm.tm_min, tm.tm_sec, bytesRead, buffer);
 
             TermBodyStop(term);
+            TermFrameStop(term);
         }
     }
 
+    InterfaceStop(interface);
     TermStop(term);
+
 	return 0;
 }

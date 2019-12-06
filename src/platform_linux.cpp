@@ -13,8 +13,7 @@ PLATFORM_INTERFACE_READ(InterfaceRead)
 {
     int bytesRead = 0;
 
-    LinuxTerminalState  *state = (LinuxTerminalState*) term;
-    LinuxInterfaceState *interface = &state->interface;
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
 
     bytesRead = read(interface->fd, buffer, bufferSize);
 
@@ -25,8 +24,7 @@ PLATFORM_INTERFACE_WRITE(InterfaceWrite)
 {
     int bytesWritten = 0;
 
-    LinuxTerminalState  *state = (LinuxTerminalState*) term;
-    LinuxInterfaceState *interface = &state->interface;
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
 
     bytesWritten = write(interface->fd, buffer, bufferSize);
 
@@ -36,15 +34,12 @@ PLATFORM_INTERFACE_WRITE(InterfaceWrite)
 // https://stackoverflow.com/questions/6947413/how-to-open-read-and-write-from-serial-port-in-c
 PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
 {
-    LinuxTerminalState  *state = (LinuxTerminalState*) term;
-    LinuxInterfaceState *interface = &state->interface;
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
  
-    int fd = interface->fd;
-
     struct termios tty;
     memset(&tty, 0, sizeof tty);
 
-    if (tcgetattr(fd, &tty) != 0)
+    if (tcgetattr(interface->fd, &tty) != 0)
     {
         fprintf(stderr, "error %d from tcgetattr\n", errno);
         return -1;
@@ -72,7 +67,7 @@ PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
 
-    if (tcsetattr(fd, TCSANOW, &tty) != 0)
+    if (tcsetattr(interface->fd, TCSANOW, &tty) != 0)
     {
         fprintf(stderr, "error %d from tcsetattr\n", errno);
         return -1;
@@ -83,15 +78,12 @@ PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
 
 PLATFORM_INTERFACE_SET_BLOCKING(InterfaceSetBlocking)
 {
-    LinuxTerminalState  *state = (LinuxTerminalState*) term;
-    LinuxInterfaceState *interface = &state->interface;
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
  
-    int fd = interface->fd;
-
     struct termios tty;
     memset(&tty, 0, sizeof tty);
 
-    if (tcgetattr(fd, &tty) != 0)
+    if (tcgetattr(interface->fd, &tty) != 0)
     {
         fprintf(stderr, "error %d from tggetattr", errno);
         return -1;
@@ -100,12 +92,42 @@ PLATFORM_INTERFACE_SET_BLOCKING(InterfaceSetBlocking)
     tty.c_cc[VMIN]  = shouldBlock ? 1 : 0;
     tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
 
-    if (tcsetattr(fd, TCSANOW, &tty) != 0)
+    if (tcsetattr(interface->fd, TCSANOW, &tty) != 0)
     {
         fprintf(stderr, "error %d setting term attributes", errno);
         return -1;
     }
 
+    return 0;
+}
+
+PLATFORM_INTERFACE_INIT(InterfaceInit)
+{
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) malloc(sizeof(LinuxInterfaceState));
+
+    interface->fd = open(portName, O_RDWR | O_NOCTTY | O_SYNC);
+    if (interface->fd < 0)
+    {
+        fprintf(stderr, "error %d opening %s: %s\n", errno, portName, strerror(errno));
+        return -1;
+    }
+
+    InterfaceSetAttribs(interface, B115200);
+    InterfaceSetBlocking(interface, false);
+
+    *_interface = interface;
+
+    return 0;
+}
+
+PLATFORM_INTERFACE_STOP(InterfaceStop)
+{
+    // TODO(Peacock): Do we have to restore any terminal settings?
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
+
+    close(interface->fd);
+    free(interface);
+    
     return 0;
 }
 
