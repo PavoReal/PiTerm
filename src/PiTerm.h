@@ -27,7 +27,7 @@ typedef void* Interface;
 //
 // Interface (UART) 
 //
-#define PLATFORM_INTERFACE_INIT(name) int name(Interface *_interface, char *portName)
+#define PLATFORM_INTERFACE_INIT(name) Interface name(int *errorCode, char *portName)
 #define PLATFORM_INTERFACE_STOP(name) int name(Interface _interface)
 
 #define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
@@ -38,7 +38,7 @@ typedef void* Interface;
 //
 // Terminal (UI)
 //
-#define PLATFORM_TERM_INIT(name) int name(Term *_term)
+#define PLATFORM_TERM_INIT(name) Term name(int *errorCode)
 #define PLATFORM_TERM_STOP(name) int name(Term _term)
 
 #define PLATFORM_TERM_FRAME_START(name) int name(Term _term)
@@ -61,7 +61,6 @@ typedef void* Interface;
 	{
 		SDL_Window *window;
 		SDL_GLContext glContext;
-		ImGuiIO io;
 	};
 #endif
 

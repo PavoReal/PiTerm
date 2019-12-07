@@ -12,7 +12,9 @@ PLATFORM_TERM_INIT(TermInit)
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
     {
         fprintf(stderr, "Failed to init SDL2... %s\n", SDL_GetError());
-        return -1;
+        *errorCode = 1;
+        
+        return 0;
     }
 
     const char* glsl_version = "#version 130";
@@ -35,7 +37,9 @@ PLATFORM_TERM_INIT(TermInit)
     if (gl3wInit() != 0)
     {
         fprintf(stderr, "Failed to inti gl3w...\n");
-        return -1;
+        *errorCode = 1;
+
+        return 0;
     }
 
     IMGUI_CHECKVERSION();
@@ -53,11 +57,8 @@ PLATFORM_TERM_INIT(TermInit)
 
     state->window = window;
     state->glContext = gl_context;
-    state->io = io;
 
-    *_term = state;
-
-    return 0;
+    return state;
 }
 
 PLATFORM_TERM_STOP(TermStop)
@@ -109,7 +110,10 @@ PLATFORM_TERM_FRAME_STOP(TermFrameStop)
 
     ImGui::Render();
 
-    glViewport(0, 0, term->io.DisplaySize.x, term->io.DisplaySize.y);
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+
+    glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
     glClearColor(0.45f, 0.55f, 0.6f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT);
 
