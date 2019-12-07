@@ -4,7 +4,7 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CXX_FLAGS="-Wall -Wextra -Wno-int-to-pointer-cast -I/usr/local/include/SDL2 -D_REENTRANT -DTERM_GUI -DIMGUI_IMPL_OPENGL_LOADER_GL3W"
+CXX_FLAGS="-Wall -Wextra -Wno-int-to-pointer-cast -Wno-unknown-pragmas -I/usr/local/include/SDL2 -D_REENTRANT -DTERM_GUI -DIMGUI_IMPL_OPENGL_LOADER_GL3W"
 CXX_FLAGS_DEBUG="-g -O0 -DDEBUG"
 CXX_FLAGS_REL="-O2"
 

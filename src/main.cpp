@@ -1,8 +1,16 @@
 #include <stdio.h>
 #include <time.h>
 
+
+#pragma warning( push )
+#pragma warning( disable : 4100 )
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #define STB_SPRINTF_IMPLEMENTATION 
 #include "stb_sprintf.h"
+
+#pragma GCC diagnostic pop
+#pragma warning( pop )
 
 #include "PiTerm.h"
 
