@@ -109,15 +109,22 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
     if (interface->fd < 0)
     {
         fprintf(stderr, "error %d opening %s: %s\n", errno, portName, strerror(errno));
-        return -1;
+        *errorCode = 1;
+
+        return 0;
     }
 
-    InterfaceSetAttribs(interface, B115200);
-    InterfaceSetBlocking(interface, false);
+    int error = InterfaceSetAttribs(interface, B115200);
+    error |= InterfaceSetBlocking(interface, false);
 
-    *_interface = interface;
+    if (error)
+    {
+        *errorCode = 1;
 
-    return 0;
+        return 0;
+    }
+
+    return interface;
 }
 
 PLATFORM_INTERFACE_STOP(InterfaceStop)
