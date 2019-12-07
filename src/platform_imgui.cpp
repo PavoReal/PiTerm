@@ -57,6 +57,7 @@ PLATFORM_TERM_INIT(TermInit)
 
     state->window = window;
     state->glContext = gl_context;
+    state->scrollLock = true;
 
     return state;
 }
@@ -113,7 +114,7 @@ PLATFORM_TERM_FRAME_STOP(TermFrameStop)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
-    glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+    glViewport(0, 0, (GLsizei) io.DisplaySize.x, (GLsizei) io.DisplaySize.y);
     glClearColor(0.45f, 0.55f, 0.6f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -129,8 +130,6 @@ PLATFORM_TERM_HEADER_START(TermHeaderStart)
     UNUSED(term);
 
     ImGui::Begin("Info");
-
-    ImGui::Text("This is the header");
     
     return 0;
 }
@@ -148,11 +147,12 @@ PLATFORM_TERM_HEADER_STOP(TermHeaderStop)
 PLATFORM_TERM_BODY_START(TermBodyStart)
 {
     TerminalState *term = (TerminalState*) _term;
-    UNUSED(term);
 
-    ImGui::Begin("Body");
+    ImGui::Begin("Console", NULL, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_MenuBar);
 
-    ImGui::Text("This is the body");
+    ImGui::BeginMenuBar();
+    ImGui::Checkbox("Scroll lock", &term->scrollLock);
+    ImGui::EndMenuBar();
 
     return 0;
 }
@@ -160,8 +160,12 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
 PLATFORM_TERM_BODY_STOP(TermBodyStop)
 {
     TerminalState *term = (TerminalState*) _term;
-    UNUSED(term);
     
+    if (term->scrollLock)
+    {
+        ImGui::SetScrollHereY(1.0f);
+    }
+
     ImGui::End();
 
     return 0;
@@ -175,20 +179,18 @@ PLATFORM_TERM_PRINTF(TermPrintf)
     va_list args;
     va_start(args, fmt);
 
+    ImGui::TextV(fmt, args);
 
     va_end(args);
     return 0;
 }
 
-PLATFORM_TERM_PRINTPOS(TermPrintPos)
+PLATFORM_TERM_PRINT_BUFFER(TermPrintBuffer)
 {
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
-    
-    va_list args;
-    va_start(args, fmt);
 
+    ImGui::TextUnformatted((char*) buffer, (char*) (buffer + bufferSize));
 
-    va_end(args);
     return 0;
 }

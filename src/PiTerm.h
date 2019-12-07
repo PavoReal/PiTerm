@@ -11,6 +11,9 @@
 	#define ASSERT(a)
 #endif
 
+#define KILOBYTES(a) (1024 * (a))
+#define MEGABYTES(a) (1024 * KILOBYTES(a))
+
 typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;
@@ -50,7 +53,7 @@ typedef void* Interface;
 #define PLATFORM_TERM_BODY_STOP(name) int name(Term _term)
 
 #define PLATFORM_TERM_PRINTF(name) int name(Term _term, const char *fmt, ...)
-#define PLATFORM_TERM_PRINTPOS(name) int name(Term _term, u32 row, u32 col, const char *fmt, ...)
+#define PLATFORM_TERM_PRINT_BUFFER(name) int name(Term _term, u8 *buffer, u32 bufferSize)
 
 #if defined(TERM_GUI)
 	#define SDL_MAIN_HANDLED
@@ -61,6 +64,8 @@ typedef void* Interface;
 	{
 		SDL_Window *window;
 		SDL_GLContext glContext;
+
+		bool scrollLock;
 	};
 #endif
 
