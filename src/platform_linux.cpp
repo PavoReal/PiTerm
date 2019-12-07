@@ -132,7 +132,7 @@ PLATFORM_INTERFACE_STOP(InterfaceStop)
 }
 
 #if defined(TERM_GUI)
-    #include "platform_linux_imgui.cpp"
+    #include "platform_imgui.cpp"
 #else
     #include "platform_linux_ncurses.cpp"
 #endif

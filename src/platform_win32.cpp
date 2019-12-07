@@ -29,42 +29,21 @@ PLATFORM_INTERFACE_SET_BLOCKING(InterfaceSetBlocking)
     return 0;
 }
 
-PLATFORM_TERM_INIT(TermInit)
+PLATFORM_INTERFACE_INIT(InterfaceInit)
 {
+    WIN32InterfaceState *interface = (WIN32InterfaceState*) VirtualAlloc(NULL, sizeof(WIN32InterfaceState),
+                                                                         MEM_COMMIT | MEM_RESERVE, 0);
+
+    *_interface = interface;
     return 0;
 }
 
-PLATFORM_TERM_STOP(TermStop)
+PLATFORM_INTERFACE_STOP(InterfaceStop)
 {
+    VirtualFree(_interface, 0, MEM_RELEASE);
+
     return 0;
 }
 
-PLATFORM_TERM_HEADER_START(TermHeaderStart)
-{
-    return 0;
-}
+#include "platform_imgui.cpp"
 
-PLATFORM_TERM_HEADER_STOP(TermHeaderStop)
-{
-    return 0;
-}
-
-PLATFORM_TERM_BODY_START(TermBodyStart)
-{
-    return 0;
-}
-
-PLATFORM_TERM_BODY_STOP(TermBodyStop)
-{
-    return 0;
-}
-
-PLATFORM_TERM_PRINTF(TermPrintf)
-{
-    return 0;
-}
-
-PLATFORM_TERM_PRINTPOS(TermPrintPos)
-{
-    return 0;
-}

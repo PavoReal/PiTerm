@@ -6,25 +6,11 @@ struct LinuxInterfaceState
 	int fd;
 };
 
-#if defined(TERM_GUI)
-	#include <SDL.h>
-	#include "imgui.h"
-
-	struct LinuxTerminalState
-	{
-		LinuxInterfaceState interface;
-
-		SDL_Window *window;
-		SDL_GLContext glContext;
-		ImGuiIO io;
-	};
-#else
+#if !defined(TERM_GUI)
 	#include <ncurses.h>
 
-	struct LinuxTerminalState
+	struct TerminalState
 	{
-		LinuxInterfaceState interface;
-
 		WINDOW *headerWindow;
 		WINDOW *header;
 

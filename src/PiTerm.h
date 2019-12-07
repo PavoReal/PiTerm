@@ -52,4 +52,34 @@ typedef void* Interface;
 #define PLATFORM_TERM_PRINTF(name) int name(Term _term, const char *fmt, ...)
 #define PLATFORM_TERM_PRINTPOS(name) int name(Term _term, u32 row, u32 col, const char *fmt, ...)
 
+#if defined(TERM_GUI)
+	#define SDL_MAIN_HANDLED
+	#include <SDL.h>
+	#include "imgui.h"
+
+	struct TerminalState
+	{
+		SDL_Window *window;
+		SDL_GLContext glContext;
+		ImGuiIO io;
+	};
+#endif
+
+#if defined(_WIN32)
+    #include "platform_win32.cpp"
+
+    #if defined(TERM_GUI)
+        #pragma message("Using IMGUI ui...")
+    #else
+        #error WIN32 build requires TERM_GUI...
+    #endif
+#else
+    #include "platform_linux.cpp"
+
+    #if defined(TERM_GUI)
+        #pragma message("Using IMGUI ui...")
+    #else
+        #pragma message("Using ncurses ui...")
+    #endif
+#endif
 #endif

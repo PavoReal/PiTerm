@@ -3,25 +3,15 @@
 
 #include "PiTerm.h"
 
-#if defined(_WIN32)
-    #include "platform_win32.cpp"
-    #if defined(TERM_GUI)
-        #pragma message("Using IMGUI ui...")
-    #else
-        #error WIN32 build requires TERM_GUI...
-    #endif
-#else
-    #include "platform_linux.cpp"
-    #if defined(TERM_GUI)
-        #pragma message("Using IMGUI ui...")
-    #else
-        #pragma message("Using ncurses ui...")
-    #endif
-#endif
+
 
 int
 main(int argc, char **argv)
 {
+    #if defined(TERM_GUI)
+        SDL_SetMainReady();
+    #endif
+        
 	if (argc <= 1)
 	{
 		printf("I need a portname (ie /dev/ttyS4)!\n");
