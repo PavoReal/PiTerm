@@ -127,6 +127,29 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
     return interface;
 }
 
+PLATFROM_INTERFACE_REINIT(InterfaceReInit)
+{
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
+
+    interface->fd = open(portName, O_RDWR | O_NOCTTY | O_SYNC);
+    if (interface->fd < 0)
+    {
+        fprintf(stderr, "error %d opening %s: %s\n", errno, portName, strerror(errno));
+
+        return 1;
+    }
+
+    int error = InterfaceSetAttribs(interface, B115200);
+    error |= InterfaceSetBlocking(interface, false);
+
+    if (error)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 PLATFORM_INTERFACE_STOP(InterfaceStop)
 {
     // TODO(Peacock): Do we have to restore any terminal settings?
@@ -134,6 +157,16 @@ PLATFORM_INTERFACE_STOP(InterfaceStop)
 
     close(interface->fd);
     free(interface);
+    
+    return 0;
+}
+
+PLATFORM_INTERFACE_DISCONENCT(InterfaceDisconnect)
+{
+    // TODO(Peacock): Do we have to restore any terminal settings?
+    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
+
+    close(interface->fd);
     
     return 0;
 }

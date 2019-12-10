@@ -58,6 +58,7 @@ PLATFORM_TERM_INIT(TermInit)
     state->window = window;
     state->glContext = gl_context;
     state->scrollLock = true;
+    *errorCode = 0;
 
     return state;
 }
@@ -191,6 +192,38 @@ PLATFORM_TERM_PRINT_BUFFER(TermPrintBuffer)
     UNUSED(term);
 
     ImGui::TextUnformatted((char*) buffer, (char*) (buffer + bufferSize));
+
+    return 0;
+}
+
+PLATFORM_TERM_SAME_LINE(TermSameLine)
+{
+    TerminalState *term = (TerminalState*) _term;
+    UNUSED(term);
+
+    ImGui::SameLine();
+
+    return 0;
+}
+
+PLATFORM_TERM_BUTTON(TermButton)
+{
+    TerminalState *term = (TerminalState*) _term;
+    UNUSED(term);
+
+    bool pressed = false;
+
+    pressed = ImGui::Button(label);
+
+    return pressed;
+}
+
+PLATFORM_TERM_INPUT_TEXT(TermInputText)
+{
+    TerminalState *term = (TerminalState*) _term;
+    UNUSED(term);
+
+    ImGui::InputText(label, buffer, bufferSize, ImGuiInputTextFlags_CharsNoBlank);
 
     return 0;
 }
