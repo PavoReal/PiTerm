@@ -20,19 +20,21 @@ main(int argc, char **argv)
         SDL_SetMainReady();
     #endif
         
-	if (argc <= 1)
-	{
-		printf("I need a portname (ie /dev/ttyS4)!\n");
-		return 0;
-	}
-
 #define PORT_MAX_LENGTH (KILOBYTES(1))
     char *port = (char*) malloc(PORT_MAX_LENGTH + 1);
-    strcpy(port, argv[1]);
+	if (argc <= 1)
+	{
+        strcpy(port, "/dev/ttyUSB0");
+	}
+    else
+    {
+        strcpy(port, argv[1]);
+    }
+
 
     int error;
-
     Term term = TermInit(&error);
+
     if (error != 0)
     {
         fprintf(stderr, "Error during initial terminal init..\n");

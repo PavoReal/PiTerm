@@ -111,7 +111,7 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
         fprintf(stderr, "error %d opening %s: %s\n", errno, portName, strerror(errno));
         *errorCode = 1;
 
-        return 0;
+        return interface;
     }
 
     int error = InterfaceSetAttribs(interface, B115200);
@@ -121,7 +121,7 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
     {
         *errorCode = 1;
 
-        return 0;
+        return interface;
     }
 
     return interface;
@@ -166,7 +166,10 @@ PLATFORM_INTERFACE_DISCONENCT(InterfaceDisconnect)
     // TODO(Peacock): Do we have to restore any terminal settings?
     LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
 
-    close(interface->fd);
+    if (interface->fd != -1)
+    {
+        close(interface->fd);
+    }
     
     return 0;
 }
