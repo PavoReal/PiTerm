@@ -11,7 +11,20 @@
 #pragma GCC diagnostic pop
 #pragma warning( pop )
 
+#include <stdarg.h>
 #include "PiTerm.h"
+
+inline void
+AppendToBuffer(u8 *buffer, u32 *bufferSize, char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int advance = stbsp_vsprintf((char*) (buffer + *bufferSize), fmt, args);
+    *bufferSize += advance;
+
+    va_end(args);
+}
 
 int
 main(int argc, char **argv)
@@ -40,8 +53,6 @@ main(int argc, char **argv)
         return 1;
     }
 
-    Interface interface = InterfaceInit(&error, port);
-
 #define READ_BUFFER_SIZE (1024)
     u8 readBuffer[READ_BUFFER_SIZE];
     u8 txBuffer[READ_BUFFER_SIZE] = {};
@@ -50,7 +61,14 @@ main(int argc, char **argv)
     u8 *consoleBuffer = (u8*) malloc(CONSOLE_BUFFER_SIZE);
     u32 consoleBufferSize = 0;
 
+    Interface interface = InterfaceInit(&error, port);
+
     bool interfaceGood = (error == 0);
+    if (!interfaceGood)
+    {
+        AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Could not connect to %s <<<\n", port);
+    }
+
     bool running = true;
 
     while (running)
@@ -78,10 +96,7 @@ main(int argc, char **argv)
                 time_t t     = time(NULL);
                 struct tm tm = *localtime(&t);
 
-                int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
-                            "[%d:%d:%d] >>> Disconnected to %s <<<\n",  
-                            tm.tm_hour, tm.tm_min, tm.tm_sec, port);
-                consoleBufferSize += advance;
+                AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Disconnected to %s <<<\n", port);
             }
         }
         else
@@ -98,17 +113,11 @@ main(int argc, char **argv)
                 struct tm tm = *localtime(&t);
                 if (interfaceGood)
                 {
-                    int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
-                                                "[%d:%d:%d] >>> Connected to %s <<<\n",  
-                                                tm.tm_hour, tm.tm_min, tm.tm_sec, port);
-                    consoleBufferSize += advance;
+                    AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Connected to %s <<<\n", port);
                 }
                 else
                 {
-                    int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
-                                                "[%d:%d:%d] >>> Could not connect to %s <<<\n",  
-                                                tm.tm_hour, tm.tm_min, tm.tm_sec, port);
-                    consoleBufferSize += advance;
+                    AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Could not connect to %s <<<\n", port);
                 }
             }
             TermSameLine(term);
@@ -129,10 +138,7 @@ main(int argc, char **argv)
         {
             s32 len = (s32) strlen((char*) txBuffer);
 
-            int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
-                                        ">>> %.*s\r\n", len, (char*) txBuffer);
-
-            consoleBufferSize += advance;
+            AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> %.*s\n", len, (char*) txBuffer);
 
             while (len >= 0)
             {
@@ -145,12 +151,9 @@ main(int argc, char **argv)
             time_t t     = time(NULL);
             struct tm tm = *localtime(&t);
 
-            int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
-                                        "[%d:%d:%d] %.*s\r\n",  
+            AppendToBuffer(consoleBuffer, &consoleBufferSize, "[%d:%d:%d] %.*s",  
                                         tm.tm_hour, tm.tm_min, tm.tm_sec, 
                                         bytesRead, readBuffer);
-
-            consoleBufferSize += advance;
         }
 
         TermBodyStop(term);

@@ -27,6 +27,30 @@ typedef uint64_t u64;
 typedef void* Term;
 typedef void* Interface;
 
+struct v4
+{
+    union
+    {
+        struct
+        {
+            float x;
+            float y;
+            float z;
+            float w;
+        };
+
+        struct
+        {
+            float r;
+            float g;
+            float b;
+            float a;
+        };
+
+        float _d[4];
+    };
+};
+
 typedef u8 PlatformTerminalInputTextFlags;
 enum PlatformTerminalInputTextFlags_
 {
@@ -47,17 +71,23 @@ enum PlatformTerminalInputTextFlags_
     PlatformTerminalInputTextFlags_CharsScientific     = 1 << 17,  // Allow 0123456789.+-*/eE (Scientific notation input)
 };
 
+enum PlatformInterfaceBaudRate
+{
+    INTERFACE_BAUD_9600,
+    INTERFACE_BAUD_115200
+};
+
 //
 // Interface (UART) 
 //
-#define PLATFORM_INTERFACE_INIT(name) Interface name(int *errorCode, char *portName)
+#define PLATFORM_INTERFACE_INIT(name) Interface name(int *errorCode, char *portName, PlatformInterfaceBaudRate baud = INTERFACE_BAUD_115200)
 #define PLATFORM_INTERFACE_STOP(name) int name(Interface _interface)
 #define PLATFROM_INTERFACE_REINIT(name) int name(Interface _interface, char *portName)
 #define PLATFORM_INTERFACE_DISCONENCT(name) int name(Interface _interface)
 
 #define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
 #define PLATFORM_INTERFACE_WRITE(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
-#define PLATFORM_INTERFACE_SET_ATTRIBS(name) int name(Interface _interface, int baud)
+#define PLATFORM_INTERFACE_SET_ATTRIBS(name) int name(Interface _interface, PlatformInterfaceBaudRate baud)
 #define PLATFORM_INTERFACE_SET_BLOCKING(name) int name(Interface _interface, bool shouldBlock)
 
 //
@@ -92,7 +122,10 @@ enum PlatformTerminalInputTextFlags_
 		SDL_Window *window;
 		SDL_GLContext glContext;
 
+        v4 clearColor;
+
 		bool scrollLock;
+        bool openSettings;
 	};
 #endif
 

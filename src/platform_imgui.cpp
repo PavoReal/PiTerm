@@ -58,6 +58,9 @@ PLATFORM_TERM_INIT(TermInit)
     state->window = window;
     state->glContext = gl_context;
     state->scrollLock = true;
+    state->openSettings = false;
+    state->clearColor = { 0.45f, 0.55f, 0.6f, 1.00f };
+
     *errorCode = 0;
 
     return state;
@@ -116,7 +119,7 @@ PLATFORM_TERM_FRAME_STOP(TermFrameStop)
     ImGuiIO& io = ImGui::GetIO();
 
     glViewport(0, 0, (GLsizei) io.DisplaySize.x, (GLsizei) io.DisplaySize.y);
-    glClearColor(0.45f, 0.55f, 0.6f, 1.00f);
+    glClearColor(term->clearColor.r, term->clearColor.g, term->clearColor.b, term->clearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -130,17 +133,32 @@ PLATFORM_TERM_HEADER_START(TermHeaderStart)
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
 
-    ImGui::Begin("Info");
-    
+    ImGui::Begin("Info", NULL, ImGuiWindowFlags_MenuBar);
+    ImGui::BeginMenuBar();
+    ImGui::Checkbox("Settings", &term->openSettings);
+    ImGui::EndMenuBar();
+
     return 0;
 }
 
 PLATFORM_TERM_HEADER_STOP(TermHeaderStop)
 {
     TerminalState *term = (TerminalState*) _term;
-    UNUSED(term);
 
     ImGui::End();
+
+    if (term->openSettings)
+    {
+        ImGui::Begin("Settings");
+
+        if (ImGui::Button("Reset Background Color"))
+        {
+            term->clearColor = { 0.45f, 0.55f, 0.6f, 1.00f };
+        }
+        ImGui::ColorPicker4("Background Color", term->clearColor._d);
+
+        ImGui::End();
+    }
 
     return 0;
 }
@@ -161,8 +179,7 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
 PLATFORM_TERM_BODY_STOP(TermBodyStop)
 {
     TerminalState *term = (TerminalState*) _term;
-    
-
+    UNUSED(term);
 
     ImGui::End();
 

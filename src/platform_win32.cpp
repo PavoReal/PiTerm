@@ -20,42 +20,43 @@ PLATFORM_INTERFACE_READ(InterfaceRead)
 
 PLATFORM_INTERFACE_WRITE(InterfaceWrite)
 {
-    int bytesWritten = 0;
+    WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
+    DWORD _bytesWritten = {};
 
-    return bytesWritten;
+    if (interface != INVALID_HANDLE_VALUE)
+    {
+        BOOL success = WriteFile(interface->handle, buffer, bufferSize, &_bytesWritten, 0);
+
+        if (!success)
+        {
+            fprintf(stderr, "Write failed!\n");
+        }
+    }
+
+    return (int) _bytesWritten;
 }
 
 PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
 {
-    return 0;
-}
-
-PLATFORM_INTERFACE_SET_BLOCKING(InterfaceSetBlocking)
-{
-    return 0;
-}
-
-PLATFORM_INTERFACE_INIT(InterfaceInit)
-{
-    WIN32InterfaceState *interface = (WIN32InterfaceState*) malloc(sizeof(WIN32InterfaceState));
-
-    interface->handle = CreateFile(portName, 
-        GENERIC_READ | GENERIC_WRITE, 
-        FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-
-    if (interface->handle == INVALID_HANDLE_VALUE)
-    {
-        fprintf(stderr, "Could not open %s\n", portName);
-
-        *errorCode = 1;
-        return interface;
-    }
+    WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
 
     DCB dcbSerialParams = { 0 }; // Initializing DCB structure
     dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
 
+    // TODO(Peacock): Baud rate
     BOOL error = GetCommState(interface->handle, &dcbSerialParams);
-    dcbSerialParams.BaudRate = CBR_115200;  // Setting BaudRate = 9600
+
+    switch (baud)
+    {
+        case INTERFACE_BAUD_9600:
+            dcbSerialParams.BaudRate = CBR_9600;
+        break;
+
+        case INTERFACE_BAUD_115200:
+            dcbSerialParams.BaudRate = CBR_115200;
+        break;
+    }
+    
     dcbSerialParams.ByteSize = 8;         // Setting ByteSize = 8
     dcbSerialParams.StopBits = ONESTOPBIT;// Setting StopBits = 1
     dcbSerialParams.Parity   = NOPARITY;  // Setting Parity = None
@@ -73,13 +74,43 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
 
     if (!error)
     {
-        fprintf(stderr, "Could not set CommState for %s\n", portName);
-
-        *errorCode = 1;
-        return 0;
+        return 1;
     }
 
-    *errorCode = 0;
+    return 0;
+}
+
+// PLATFORM_INTERFACE_SET_BLOCKING(InterfaceSetBlocking)
+// {
+//     return 0;
+// }
+
+PLATFORM_INTERFACE_INIT(InterfaceInit)
+{
+    WIN32InterfaceState *interface = (WIN32InterfaceState*) malloc(sizeof(WIN32InterfaceState));
+
+    interface->handle = CreateFile(portName, 
+        GENERIC_READ | GENERIC_WRITE, 
+        FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+    if (interface->handle == INVALID_HANDLE_VALUE)
+    {
+        fprintf(stderr, "Could not open %s\n", portName);
+
+        *errorCode = 1;
+        return interface;
+    }
+
+    if (InterfaceSetAttribs(interface, baud))
+    {
+        fprintf(stderr, "Could not set interface attribs for %s\n", portName);
+        *errorCode = 1;
+    }
+    else
+    {
+        *errorCode = 0;
+    }
+
     return interface;
 }
 
