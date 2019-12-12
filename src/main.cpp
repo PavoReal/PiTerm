@@ -31,7 +31,6 @@ main(int argc, char **argv)
         strcpy(port, argv[1]);
     }
 
-
     int error;
     Term term = TermInit(&error);
 
@@ -45,10 +44,11 @@ main(int argc, char **argv)
 
 #define READ_BUFFER_SIZE (1024)
     u8 readBuffer[READ_BUFFER_SIZE];
+    u8 txBuffer[READ_BUFFER_SIZE] = {};
 
-#define RX_BUFFER_SIZE (MEGABYTES(10))
-    u8 *rxBuffer = (u8*) malloc(RX_BUFFER_SIZE);
-    u32 rxBufferSize = 0;
+#define CONSOLE_BUFFER_SIZE (MEGABYTES(10))
+    u8 *consoleBuffer = (u8*) malloc(CONSOLE_BUFFER_SIZE);
+    u32 consoleBufferSize = 0;
 
     bool interfaceGood = (error == 0);
     bool running = true;
@@ -78,10 +78,10 @@ main(int argc, char **argv)
                 time_t t     = time(NULL);
                 struct tm tm = *localtime(&t);
 
-                int advance = stbsp_sprintf((char*) (rxBuffer + rxBufferSize), 
+                int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
                             "[%d:%d:%d] >>> Disconnected to %s <<<\n",  
                             tm.tm_hour, tm.tm_min, tm.tm_sec, port);
-                rxBufferSize += advance;
+                consoleBufferSize += advance;
             }
         }
         else
@@ -98,45 +98,59 @@ main(int argc, char **argv)
                 struct tm tm = *localtime(&t);
                 if (interfaceGood)
                 {
-                    int advance = stbsp_sprintf((char*) (rxBuffer + rxBufferSize), 
+                    int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
                                                 "[%d:%d:%d] >>> Connected to %s <<<\n",  
                                                 tm.tm_hour, tm.tm_min, tm.tm_sec, port);
-                    rxBufferSize += advance;
+                    consoleBufferSize += advance;
                 }
                 else
                 {
-                    int advance = stbsp_sprintf((char*) (rxBuffer + rxBufferSize), 
+                    int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
                                                 "[%d:%d:%d] >>> Could not connect to %s <<<\n",  
                                                 tm.tm_hour, tm.tm_min, tm.tm_sec, port);
-                    rxBufferSize += advance;
+                    consoleBufferSize += advance;
                 }
             }
             TermSameLine(term);
-            TermInputText(term, "Port", port, PORT_MAX_LENGTH);
+            TermInputText(term, "Port", port, PORT_MAX_LENGTH, PlatformTerminalInputTextFlags_CharsNoBlank);
         }
 
         int bitsPerSecond = bytesRead * 8;
 
         TermPrintf(term, "BAUD: 115200");
         TermPrintf(term, "RX Rate: %d", bitsPerSecond);
-        TermPrintf(term, "RX Buffer Size: %d / %d", rxBufferSize, RX_BUFFER_SIZE);
+        TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
 
         TermHeaderStop(term);
         TermBodyStart(term);
 
-        TermPrintBuffer(term, rxBuffer, rxBufferSize);
+        TermPrintBuffer(term, consoleBuffer, consoleBufferSize);
+        if (TermInputText(term, "", (char*) txBuffer, READ_BUFFER_SIZE, PlatformTerminalInputTextFlags_AutoSelectAll | PlatformTerminalInputTextFlags_EnterReturnsTrue))
+        {
+            s32 len = (s32) strlen((char*) txBuffer);
+
+            int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
+                                        ">>> %.*s\r\n", len, (char*) txBuffer);
+
+            consoleBufferSize += advance;
+
+            while (len >= 0)
+            {
+                txBuffer[len--] = 0;
+            }
+        }
 
         if (bytesRead)
         {
             time_t t     = time(NULL);
             struct tm tm = *localtime(&t);
 
-            int advance = stbsp_sprintf((char*) (rxBuffer + rxBufferSize), 
+            int advance = stbsp_sprintf((char*) (consoleBuffer + consoleBufferSize), 
                                         "[%d:%d:%d] %.*s\r\n",  
                                         tm.tm_hour, tm.tm_min, tm.tm_sec, 
                                         bytesRead, readBuffer);
 
-            rxBufferSize += advance;
+            consoleBufferSize += advance;
         }
 
         TermBodyStop(term);
@@ -146,7 +160,7 @@ main(int argc, char **argv)
     InterfaceStop(interface);
     TermStop(term);
 
-    free(rxBuffer);
+    free(consoleBuffer);
     free(port);
 
 	return 0;

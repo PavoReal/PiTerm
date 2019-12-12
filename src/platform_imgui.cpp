@@ -149,7 +149,7 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
 {
     TerminalState *term = (TerminalState*) _term;
 
-    ImGui::Begin("Console", NULL, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_MenuBar);
+    ImGui::Begin("Console", NULL, ImGuiWindowFlags_MenuBar);
 
     ImGui::BeginMenuBar();
     ImGui::Checkbox("Scroll lock", &term->scrollLock);
@@ -162,10 +162,7 @@ PLATFORM_TERM_BODY_STOP(TermBodyStop)
 {
     TerminalState *term = (TerminalState*) _term;
     
-    if (term->scrollLock)
-    {
-        ImGui::SetScrollHereY(1.0f);
-    }
+
 
     ImGui::End();
 
@@ -191,7 +188,15 @@ PLATFORM_TERM_PRINT_BUFFER(TermPrintBuffer)
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
 
+    ImGui::BeginChild((char*) buffer, ImVec2(0, 400), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::TextUnformatted((char*) buffer, (char*) (buffer + bufferSize));
+
+    if (term->scrollLock)
+    {
+        ImGui::SetScrollHereY(1.0f);
+    }
+
+    ImGui::EndChild();
 
     return 0;
 }
@@ -223,7 +228,6 @@ PLATFORM_TERM_INPUT_TEXT(TermInputText)
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
 
-    ImGui::InputText(label, buffer, bufferSize, ImGuiInputTextFlags_CharsNoBlank);
-
-    return 0;
+    bool result = ImGui::InputText(label, buffer, bufferSize, flags);
+    return result;
 }
