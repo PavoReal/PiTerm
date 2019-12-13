@@ -93,9 +93,6 @@ main(int argc, char **argv)
                 InterfaceDisconnect(interface);
                 interfaceGood = false;
 
-                time_t t     = time(NULL);
-                struct tm tm = *localtime(&t);
-
                 AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Disconnected to %s <<<\n", port);
             }
         }
@@ -105,12 +102,11 @@ main(int argc, char **argv)
 
             TermPrintf(term, "    ");
             TermSameLine(term);
+
             if (TermButton(term, "Connect"))
             {
                 interfaceGood = (InterfaceReInit(interface, port) == 0);
 
-                time_t t     = time(NULL);
-                struct tm tm = *localtime(&t);
                 if (interfaceGood)
                 {
                     AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Connected to %s <<<\n", port);
@@ -120,6 +116,7 @@ main(int argc, char **argv)
                     AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Could not connect to %s <<<\n", port);
                 }
             }
+
             TermSameLine(term);
             TermInputText(term, "Port", port, PORT_MAX_LENGTH, PlatformTerminalInputTextFlags_CharsNoBlank);
         }

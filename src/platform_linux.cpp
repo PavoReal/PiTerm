@@ -45,8 +45,20 @@ PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
         return -1;
     }
 
-    cfsetospeed(&tty, baud);
-    cfsetispeed(&tty, baud);
+    speed_t _baud;
+    switch (baud)
+    {
+        case INTERFACE_BAUD_9600:
+            _baud = B9600;
+        break;
+
+        case INTERFACE_BAUD_115200:
+            _baud = B115200;
+        break;
+    }
+
+    cfsetospeed(&tty, _baud);
+    cfsetispeed(&tty, _baud);
 
     tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
     // disable IGNBRK for mismatched speed tests; otherwise receive break
@@ -114,7 +126,7 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
         return interface;
     }
 
-    int error = InterfaceSetAttribs(interface, B115200);
+    int error = InterfaceSetAttribs(interface, baud);
     error |= InterfaceSetBlocking(interface, false);
 
     if (error)
@@ -139,7 +151,7 @@ PLATFROM_INTERFACE_REINIT(InterfaceReInit)
         return 1;
     }
 
-    int error = InterfaceSetAttribs(interface, B115200);
+    int error = InterfaceSetAttribs(interface, baud);
     error |= InterfaceSetBlocking(interface, false);
 
     if (error)

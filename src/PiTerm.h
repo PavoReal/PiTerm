@@ -82,7 +82,7 @@ enum PlatformInterfaceBaudRate
 //
 #define PLATFORM_INTERFACE_INIT(name) Interface name(int *errorCode, char *portName, PlatformInterfaceBaudRate baud = INTERFACE_BAUD_115200)
 #define PLATFORM_INTERFACE_STOP(name) int name(Interface _interface)
-#define PLATFROM_INTERFACE_REINIT(name) int name(Interface _interface, char *portName)
+#define PLATFROM_INTERFACE_REINIT(name) int name(Interface _interface, char *portName, PlatformInterfaceBaudRate baud = INTERFACE_BAUD_115200)
 #define PLATFORM_INTERFACE_DISCONENCT(name) int name(Interface _interface)
 
 #define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
