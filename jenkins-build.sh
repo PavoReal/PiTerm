@@ -10,7 +10,7 @@ else
 fi
 
 cp build/PiTerm build/PiTerm-Release
-objdump -S --disassemble build/PiTerm > build/Piterm-Release.list
+objdump -S --disassemble build/PiTerm > build/PiTerm-Release.list
 
 time ./build.sh -d
 if [ ! $? -eq 0 ]
@@ -20,4 +20,4 @@ then
 else
 	echo -e "\e[7mGood debug build\e[0m"
 fi
-objdump -S --disassemble build/PiTerm > build/Piterm-Debug.list
+objdump -S --disassemble build/PiTerm > build/PiTerm-Debug.list
