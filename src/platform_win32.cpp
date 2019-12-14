@@ -134,30 +134,9 @@ PLATFROM_INTERFACE_REINIT(InterfaceReInit)
         return 1;
     }
 
-    DCB dcbSerialParams = { 0 }; // Initializing DCB structure
-    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-
-    BOOL error = GetCommState(interface->handle, &dcbSerialParams);
-    dcbSerialParams.BaudRate = CBR_115200;  // Setting BaudRate = 9600
-    dcbSerialParams.ByteSize = 8;         // Setting ByteSize = 8
-    dcbSerialParams.StopBits = ONESTOPBIT;// Setting StopBits = 1
-    dcbSerialParams.Parity   = NOPARITY;  // Setting Parity = None
-
-    error |= SetCommState(interface->handle, &dcbSerialParams);
-
-    COMMTIMEOUTS timeouts = { 0 };
-    timeouts.ReadIntervalTimeout         = MAXDWORD; // in milliseconds
-    timeouts.ReadTotalTimeoutConstant    = 0; // in milliseconds
-    timeouts.ReadTotalTimeoutMultiplier  = 0; // in milliseconds
-    timeouts.WriteTotalTimeoutConstant   = 50; // in milliseconds
-    timeouts.WriteTotalTimeoutMultiplier = 50; // in milliseconds
-
-    error |= SetCommTimeouts(interface->handle, &timeouts);
-
-    if (!error)
+    if (InterfaceSetAttribs(interface, baud))
     {
-        fprintf(stderr, "Could not set CommState for %s\n", portName);
-
+        fprintf(stderr, "Could not set interface attribs for %s\n", portName);
         return 1;
     }
 

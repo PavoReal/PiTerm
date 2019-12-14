@@ -45,7 +45,7 @@ PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
         return -1;
     }
 
-    speed_t _baud;
+    speed_t _baud = B115200;
     switch (baud)
     {
         case INTERFACE_BAUD_9600:
