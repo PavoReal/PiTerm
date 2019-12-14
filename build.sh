@@ -13,8 +13,24 @@ LD_FLAGS_DEBUG=""
 LD_FLAGS_REL="-flto"
 LD_LIBS="-lncurses -lGL -ldl -L/usr/local/lib -Wl,-rpath,/usr/local/lib -Wl,--enable-new-dtags -pthread -lSDL2"
 
-mkdir -p build/
+while getopts "dr" ARG; do
+    case $ARG in
+    d)
+        echo "[Debug]"
+        CXX_FLAGS="$CXX_FLAGS $CXX_FLAGS_DEBUG"
+		LD_FLAGS="$LD_FLAGS_DEBUG"
+		break
+        ;;
+    r)
+        echo "[Release]"
+        CXX_FLAGS="$CXX_FLAGS $CXX_FLAGS_REL"
+        LD_FLAGS="$LD_FLAGS $LD_FLAGS_REL"
+	    break
+        ;;
+    esac
+done
 
+mkdir -p build/
 pushd build/ > /dev/null
 
 rm -rf *.o
