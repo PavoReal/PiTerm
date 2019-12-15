@@ -19,7 +19,7 @@ mkdir build 2> NUL
 pushd build\
 
 copy ..\libs\win32\debug\*.lib .\
-copy ..\libs\win32\release\*.lib .\
+copy ..\libs\win32\release\*.dll .\
 
 cl /c %CPP_FLAGS% %CPP_FLAGS_DEBUG% ..\src\main.cpp 
 if %ERRORLEVEL% neq 0 goto done
