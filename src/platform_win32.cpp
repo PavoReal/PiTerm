@@ -89,6 +89,8 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
 {
     WIN32InterfaceState *interface = (WIN32InterfaceState*) malloc(sizeof(WIN32InterfaceState));
 
+    QueryPerformanceFrequency(&PerformanceFreq);
+
     interface->handle = CreateFile(portName, 
         GENERIC_READ | GENERIC_WRITE, 
         FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
@@ -160,6 +162,31 @@ PLATFORM_INTERFACE_DISCONENCT(InterfaceDisconnect)
     CloseHandle(interface->handle);
 
     return 0;
+}
+
+PLATFORM_INTERFACE_GET_TIME(InterfaceGetTime)
+{
+    WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
+    UNUSED(interface);
+
+    LARGE_INTEGER count = {};
+    QueryPerformanceCounter(&count);
+
+    return (void*) count.QuadPart;
+}
+
+PLATFORM_INTERFACE_TIME_TO_MS(InterfaceTimeToMS)
+{
+    WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
+    UNUSED(interface);
+    
+    double result = 0;
+
+    u64 time = (u64) _time;
+
+    result = ((double) time / (double) PerformanceFreq.QuadPart) * 1000.0;
+
+    return result;
 }
 
 #include "platform_imgui.cpp"

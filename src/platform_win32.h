@@ -9,4 +9,6 @@ struct WIN32InterfaceState
 	HANDLE handle;
 };
 
+GLOBAL LARGE_INTEGER PerformanceFreq = {};
+
 #endif

@@ -29,20 +29,15 @@ AppendToBuffer(u8 *buffer, u32 *bufferSize, char *fmt, ...)
 int
 main(int argc, char **argv)
 {
-    #if defined(TERM_GUI)
+#if defined(TERM_GUI)
         SDL_SetMainReady();
-    #endif
+#endif
         
 #define PORT_MAX_LENGTH (KILOBYTES(1))
     char *port = (char*) malloc(PORT_MAX_LENGTH + 1);
 	if (argc <= 1)
 	{
-#if defined(_WIN32)
-        const char *dummyTarget = "COM4";
-#else
         const char *dummyTarget = "/dev/ttyUSB0";
-#endif
-
         strcpy(port, dummyTarget);
 	}
     else
@@ -76,9 +71,12 @@ main(int argc, char **argv)
     }
 
     bool running = true;
+    double lastFrameTime = 0;
 
     while (running)
     {
+        TimeCount startTime = InterfaceGetTime(interface);
+
         if (TermFrameStart(term) == (PlatformTerminalResult_Fatal | PlatformTerminalResult_Quit))
         {
             running = false;
@@ -132,6 +130,7 @@ main(int argc, char **argv)
         TermPrintf(term, "BAUD: 115200");
         TermPrintf(term, "RX Rate: %d", bitsPerSecond);
         TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
+        TermPrintf(term, "Frame time: %lf ms", lastFrameTime);
 
         TermHeaderStop(term);
 
@@ -180,6 +179,13 @@ main(int argc, char **argv)
 
         TermBodyStop(term);
         TermFrameStop(term);
+
+        TimeCount endTime = InterfaceGetTime(interface);
+
+        double startMS = InterfaceTimeToMS(interface, startTime);
+        double endMS   = InterfaceTimeToMS(interface, endTime);
+
+        lastFrameTime = endMS - startMS;
     }
 
     InterfaceStop(interface);

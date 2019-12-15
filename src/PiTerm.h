@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#define GLOBAL static
+#define INTERNAL static
+#define PRESISTANT static
+
 #define UNUSED(a) (void) a
 
 #if defined(DEBUG)
@@ -26,6 +30,7 @@ typedef uint64_t u64;
 
 typedef void* Term;
 typedef void* Interface;
+typedef void* TimeCount;
 
 struct v4
 {
@@ -96,6 +101,9 @@ enum PlatformInterfaceBaudRate
 #define PLATFORM_INTERFACE_STOP(name) int name(Interface _interface)
 #define PLATFROM_INTERFACE_REINIT(name) int name(Interface _interface, char *portName, PlatformInterfaceBaudRate baud = INTERFACE_BAUD_115200)
 #define PLATFORM_INTERFACE_DISCONENCT(name) int name(Interface _interface)
+
+#define PLATFORM_INTERFACE_GET_TIME(name) TimeCount name(Interface _interface)
+#define PLATFORM_INTERFACE_TIME_TO_MS(name) double name(Interface _interface, TimeCount _time)
 
 #define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
 #define PLATFORM_INTERFACE_WRITE(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
