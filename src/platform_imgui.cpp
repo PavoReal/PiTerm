@@ -94,11 +94,11 @@ PLATFORM_TERM_FRAME_START(TermFrameStart)
 
         if (event.type == SDL_QUIT)
         {
-            return 1;
+            return PlatformTerminalResult_Quit;
         }
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(term->window))
         {
-            return 1;
+            return PlatformTerminalResult_Quit;
         }
     }
 
@@ -167,19 +167,33 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
 {
     TerminalState *term = (TerminalState*) _term;
 
+    PlatformTerminalResult result = 0;
+
     ImGui::Begin("Console", NULL, ImGuiWindowFlags_MenuBar);
 
     ImGui::BeginMenuBar();
+
     ImGui::Checkbox("Scroll lock", &term->scrollLock);
+    ImGui::Separator();
+    if (ImGui::Button("Clear"))
+    {
+        result = PlatformTerminalResult_ClearConsole;
+    }
+
     ImGui::EndMenuBar();
 
-    return 0;
+    return result;
 }
 
 PLATFORM_TERM_BODY_STOP(TermBodyStop)
 {
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
+
+    if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+    {  
+        ImGui::SetKeyboardFocusHere(0);
+    }
 
     ImGui::End();
 

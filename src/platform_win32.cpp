@@ -67,8 +67,8 @@ PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
     timeouts.ReadIntervalTimeout         = MAXDWORD; // in milliseconds
     timeouts.ReadTotalTimeoutConstant    = 0; // in milliseconds
     timeouts.ReadTotalTimeoutMultiplier  = 0; // in milliseconds
-    timeouts.WriteTotalTimeoutConstant   = 50; // in milliseconds
-    timeouts.WriteTotalTimeoutMultiplier = 50; // in milliseconds
+    timeouts.WriteTotalTimeoutConstant   = 250; // in milliseconds
+    timeouts.WriteTotalTimeoutMultiplier = 250; // in milliseconds
 
     error |= SetCommTimeouts(interface->handle, &timeouts);
 

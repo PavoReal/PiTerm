@@ -71,6 +71,18 @@ enum PlatformTerminalInputTextFlags_
     PlatformTerminalInputTextFlags_CharsScientific     = 1 << 17,  // Allow 0123456789.+-*/eE (Scientific notation input)
 };
 
+typedef u8 PlatformTerminalResult;
+enum PlatformTerminalResult_
+{
+    PlatformTerminalResult_None = 0,
+
+    PlatformTerminalResult_Error = 1 << 0,
+    PlatformTerminalResult_Fatal = 1 << 1,
+
+    PlatformTerminalResult_ClearConsole = 1 << 2,
+    PlatformTerminalResult_Quit         = 1 << 3,
+};
+
 enum PlatformInterfaceBaudRate
 {
     INTERFACE_BAUD_9600,
@@ -94,23 +106,23 @@ enum PlatformInterfaceBaudRate
 // Terminal (UI)
 //
 #define PLATFORM_TERM_INIT(name) Term name(int *errorCode)
-#define PLATFORM_TERM_STOP(name) int name(Term _term)
+#define PLATFORM_TERM_STOP(name) PlatformTerminalResult name(Term _term)
 
-#define PLATFORM_TERM_FRAME_START(name) int name(Term _term)
-#define PLATFORM_TERM_FRAME_STOP(name) int name(Term _term)
+#define PLATFORM_TERM_FRAME_START(name) PlatformTerminalResult name(Term _term)
+#define PLATFORM_TERM_FRAME_STOP(name) PlatformTerminalResult name(Term _term)
 
-#define PLATFORM_TERM_HEADER_START(name) int name(Term _term)
-#define PLATFORM_TERM_HEADER_STOP(name) int name(Term _term)
-#define PLATFORM_TERM_BODY_START(name) int name(Term _term)
-#define PLATFORM_TERM_BODY_STOP(name) int name(Term _term)
+#define PLATFORM_TERM_HEADER_START(name) PlatformTerminalResult name(Term _term)
+#define PLATFORM_TERM_HEADER_STOP(name) PlatformTerminalResult name(Term _term)
+#define PLATFORM_TERM_BODY_START(name) PlatformTerminalResult name(Term _term)
+#define PLATFORM_TERM_BODY_STOP(name) PlatformTerminalResult name(Term _term)
 
-#define PLATFORM_TERM_SAME_LINE(name) int name(Term _term)
-#define PLATFORM_TERM_BUTTON(name) bool name(Term _term, char *label)
+#define PLATFORM_TERM_SAME_LINE(name) PlatformTerminalResult name(Term _term)
+#define PLATFORM_TERM_BUTTON(name) PlatformTerminalResult name(Term _term, char *label)
 
-#define PLATFORM_TERM_PRINTF(name) int name(Term _term, const char *fmt, ...)
-#define PLATFORM_TERM_PRINT_BUFFER(name) int name(Term _term, u8 *buffer, u32 bufferSize)
+#define PLATFORM_TERM_PRINTF(name) PlatformTerminalResult name(Term _term, const char *fmt, ...)
+#define PLATFORM_TERM_PRINT_BUFFER(name) PlatformTerminalResult name(Term _term, u8 *buffer, u32 bufferSize)
 
-#define PLATFORM_TERM_INPUT_TEXT(name) int name(Term _term, char *label, char *buffer, u32 bufferSize, PlatformTerminalInputTextFlags flags)
+#define PLATFORM_TERM_INPUT_TEXT(name) PlatformTerminalResult name(Term _term, char *label, char *buffer, u32 bufferSize, PlatformTerminalInputTextFlags flags)
 
 #if defined(TERM_GUI)
 	#define SDL_MAIN_HANDLED

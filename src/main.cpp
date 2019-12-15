@@ -37,7 +37,13 @@ main(int argc, char **argv)
     char *port = (char*) malloc(PORT_MAX_LENGTH + 1);
 	if (argc <= 1)
 	{
-        strcpy(port, "/dev/ttyUSB0");
+#if defined(_WIN32)
+        const char *dummyTarget = "COM4";
+#else
+        const char *dummyTarget = "/dev/ttyUSB0";
+#endif
+
+        strcpy(port, dummyTarget);
 	}
     else
     {
@@ -73,7 +79,7 @@ main(int argc, char **argv)
 
     while (running)
     {
-        if (TermFrameStart(term) != 0)
+        if (TermFrameStart(term) == (PlatformTerminalResult_Fatal | PlatformTerminalResult_Quit))
         {
             running = false;
             break;
@@ -128,7 +134,11 @@ main(int argc, char **argv)
         TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
 
         TermHeaderStop(term);
-        TermBodyStart(term);
+
+        if (TermBodyStart(term) == (PlatformTerminalResult_ClearConsole))
+        {
+            consoleBufferSize = 0;
+        }
 
         TermPrintBuffer(term, consoleBuffer, consoleBufferSize);
         if (TermInputText(term, "", (char*) txBuffer, READ_BUFFER_SIZE, PlatformTerminalInputTextFlags_AutoSelectAll | PlatformTerminalInputTextFlags_EnterReturnsTrue))
@@ -136,6 +146,16 @@ main(int argc, char **argv)
             s32 len = (s32) strlen((char*) txBuffer);
 
             AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> %.*s\n", len, (char*) txBuffer);
+
+            u32 sizeToSend = len + 1;
+            u8 *toSend = (u8*) malloc(sizeToSend);
+
+            strcpy((char*) toSend, (char*) txBuffer);
+            toSend[sizeToSend - 1] = '\0';
+
+            InterfaceWrite(interface, toSend, sizeToSend);
+
+            free(toSend);
 
             while (len >= 0)
             {
@@ -151,6 +171,11 @@ main(int argc, char **argv)
             AppendToBuffer(consoleBuffer, &consoleBufferSize, "[%d:%d:%d] %.*s",  
                                         tm.tm_hour, tm.tm_min, tm.tm_sec, 
                                         bytesRead, readBuffer);
+
+            if (consoleBuffer[consoleBufferSize - 1] != '\n')
+            {
+                AppendToBuffer(consoleBuffer, &consoleBufferSize, "\n");
+            }
         }
 
         TermBodyStop(term);
