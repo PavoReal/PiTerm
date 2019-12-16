@@ -32,7 +32,7 @@ PLATFORM_TERM_INIT(TermInit)
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 
     SDL_GL_MakeCurrent(window, gl_context);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    SDL_GL_SetSwapInterval(1);
 
     if (gl3wInit() != 0)
     {
@@ -45,22 +45,29 @@ PLATFORM_TERM_INIT(TermInit)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.IniFilename = "PiTerm.ini";
 
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
 
-    // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    state->window = window;
-    state->glContext = gl_context;
-    state->scrollLock = true;
-    state->openSettings = false;
-    state->clearColor = { 0.45f, 0.55f, 0.6f, 1.00f };
+    state->window         = window;
+    state->glContext      = gl_context;
+    state->scrollLock     = true;
+    state->openSettings   = false;
+    state->openBootloader = true;
+    state->clearColor     = { 0.45f, 0.55f, 0.6f, 1.00f };
+
+    state->bootloaderInputRootPath = (char*) calloc(MAX_PATH, 1);
+    state->bootloaderInputFilePath = (char*) calloc(MAX_PATH, 1);
+
+    char *startPath = PlatformGetEXEDirectory();
+
+    strcpy(state->bootloaderInputRootPath, startPath);
+
+    free(startPath);
 
     *errorCode = 0;
 
@@ -79,6 +86,8 @@ PLATFORM_TERM_STOP(TermStop)
     SDL_DestroyWindow(term->window);
     SDL_Quit();
 
+    free(term->bootloaderInputFilePath);
+    free(term->bootloaderInputRootPath);
     free(term);
 
     return 0;
@@ -135,8 +144,10 @@ PLATFORM_TERM_HEADER_START(TermHeaderStart)
     UNUSED(term);
 
     ImGui::Begin("Info", NULL, ImGuiWindowFlags_MenuBar);
+
     ImGui::BeginMenuBar();
     ImGui::Checkbox("Settings", &term->openSettings);
+    ImGui::Checkbox("Bootloader", &term->openBootloader);
     ImGui::EndMenuBar();
 
     return 0;
@@ -157,6 +168,20 @@ PLATFORM_TERM_HEADER_STOP(TermHeaderStop)
             term->clearColor = { 0.45f, 0.55f, 0.6f, 1.00f };
         }
         ImGui::ColorPicker4("Background Color", term->clearColor._d);
+
+        ImGui::End();
+    }
+
+    if (term->openBootloader)
+    {
+        ImGui::Begin("Bootloader");
+
+        if (ImGui::Button("Upload"))
+        {
+            printf("Bootloader uploading has yet to be implemented...\n");
+        }
+        
+        ImGui::Text(term->bootloaderInputRootPath);
 
         ImGui::End();
     }

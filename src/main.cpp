@@ -73,7 +73,7 @@ main(int argc, char **argv)
 
     while (running)
     {
-        TimeCount startTime = InterfaceGetTime(interface);
+        TimeCount startTime = PlatformGetTime();
 
         if (TermFrameStart(term) == (PlatformTerminalResult_Fatal | PlatformTerminalResult_Quit))
         {
@@ -178,10 +178,10 @@ main(int argc, char **argv)
         TermBodyStop(term);
         TermFrameStop(term);
 
-        TimeCount endTime = InterfaceGetTime(interface);
+        TimeCount endTime = PlatformGetTime();
 
-        double startMS = InterfaceTimeToMS(interface, startTime);
-        double endMS   = InterfaceTimeToMS(interface, endTime);
+        double startMS = PlatformTimeToMS(startTime);
+        double endMS   = PlatformTimeToMS(endTime);
 
         lastFrameTime = endMS - startMS;
     }

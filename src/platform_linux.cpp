@@ -9,6 +9,45 @@
 
 #include <stdarg.h>
 
+#define MAX_PATH (4096)
+
+PLATFORM_GET_TIME(PlatformGetTime)
+{
+    long            ms; // Milliseconds
+    time_t          s;  // Seconds
+    struct timespec spec;
+
+    clock_gettime(CLOCK_REALTIME, &spec);
+
+    s  = spec.tv_sec;
+    ms = round(spec.tv_nsec / 1.0e6);
+    if (ms > 999) 
+    {
+        s++;
+        ms = 0;
+    }
+
+    return (void*) (((u64) s * 1000) + ms);
+}
+
+PLATFORM_TIME_TO_MS(PlatformTimeToMS)
+{
+    u64 time = (u64) _time;
+
+    double result = (double) time / 1000.0;
+
+    return (double) result;
+}
+
+PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
+{
+    char *result = (char*) calloc(MAX_PATH, 1);
+
+    readlink("/proc/self/exe", result, MAX_PATH);
+
+    return result;
+}
+
 PLATFORM_INTERFACE_READ(InterfaceRead)
 {
     int bytesRead = 0;
@@ -184,40 +223,6 @@ PLATFORM_INTERFACE_DISCONENCT(InterfaceDisconnect)
     }
     
     return 0;
-}
-
-PLATFORM_INTERFACE_GET_TIME(InterfaceGetTime)
-{
-    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
-    UNUSED(interface);
-
-    long            ms; // Milliseconds
-    time_t          s;  // Seconds
-    struct timespec spec;
-
-    clock_gettime(CLOCK_REALTIME, &spec);
-
-    s  = spec.tv_sec;
-    ms = round(spec.tv_nsec / 1.0e6);
-    if (ms > 999) 
-    {
-        s++;
-        ms = 0;
-    }
-
-    return (void*) (((u64) s * 1000) + ms);
-}
-
-PLATFORM_INTERFACE_TIME_TO_MS(InterfaceTimeToMS)
-{
-    LinuxInterfaceState *interface = (LinuxInterfaceState*) _interface;
-    UNUSED(interface);
-
-    u64 time = (u64) _time;
-
-    double result = (double) time / 1000.0;
-
-    return (double) result;
 }
 
 #include "terminal_imgui.cpp"

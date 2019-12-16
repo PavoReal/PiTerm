@@ -5,6 +5,46 @@
 
 #include <stdarg.h>
 
+PLATFORM_GET_TIME(PlatformGetTime)
+{
+    LARGE_INTEGER count = {};
+    QueryPerformanceCounter(&count);
+
+    return (void*) count.QuadPart;
+}
+
+PLATFORM_TIME_TO_MS(PlatformTimeToMS)
+{
+    double result = 0;
+
+    u64 time = (u64) _time;
+
+    result = ((double) time / (double) PerformanceFreq.QuadPart) * 1000.0;
+
+    return result;
+}
+
+PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
+{
+    char *result = (char*) calloc(MAX_PATH, 1);
+
+    HMODULE module = GetModuleHandle(NULL);
+    GetModuleFileName(module, result, MAX_PATH);
+
+    size_t len = strlen(result);
+
+    char *index = result + (len);
+
+    while (*index != '\\')
+    {
+        --index;
+    }
+
+    *(++index) = '\0';
+
+    return result;
+}
+
 PLATFORM_INTERFACE_READ(InterfaceRead)
 {
     WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
@@ -162,31 +202,6 @@ PLATFORM_INTERFACE_DISCONENCT(InterfaceDisconnect)
     CloseHandle(interface->handle);
 
     return 0;
-}
-
-PLATFORM_INTERFACE_GET_TIME(InterfaceGetTime)
-{
-    WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
-    UNUSED(interface);
-
-    LARGE_INTEGER count = {};
-    QueryPerformanceCounter(&count);
-
-    return (void*) count.QuadPart;
-}
-
-PLATFORM_INTERFACE_TIME_TO_MS(InterfaceTimeToMS)
-{
-    WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
-    UNUSED(interface);
-    
-    double result = 0;
-
-    u64 time = (u64) _time;
-
-    result = ((double) time / (double) PerformanceFreq.QuadPart) * 1000.0;
-
-    return result;
 }
 
 #include "terminal_imgui.cpp"

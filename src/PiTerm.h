@@ -94,6 +94,13 @@ enum PlatformInterfaceBaudRate
     INTERFACE_BAUD_115200
 };
 
+// 
+// General platform shit
+//
+#define PLATFORM_GET_TIME(name) TimeCount name()
+#define PLATFORM_TIME_TO_MS(name) double name(TimeCount _time)
+#define PLATFORM_GET_EXE_DIRECTORY(name) char* name()
+
 //
 // Interface (UART) 
 //
@@ -102,8 +109,6 @@ enum PlatformInterfaceBaudRate
 #define PLATFROM_INTERFACE_REINIT(name) int name(Interface _interface, char *portName, PlatformInterfaceBaudRate baud = INTERFACE_BAUD_115200)
 #define PLATFORM_INTERFACE_DISCONENCT(name) int name(Interface _interface)
 
-#define PLATFORM_INTERFACE_GET_TIME(name) TimeCount name(Interface _interface)
-#define PLATFORM_INTERFACE_TIME_TO_MS(name) double name(Interface _interface, TimeCount _time)
 
 #define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
 #define PLATFORM_INTERFACE_WRITE(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
@@ -143,8 +148,13 @@ struct TerminalState
 
     v4 clearColor;
 
+    char *bootloaderInputRootPath;
+    char *bootloaderInputFilePath;
+
 	bool scrollLock;
+
     bool openSettings;
+    bool openBootloader;
 };
 
 #if defined(_WIN32)
