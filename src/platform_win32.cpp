@@ -32,7 +32,6 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
     GetModuleFileName(module, result, MAX_PATH);
 
     size_t len = strlen(result);
-
     char *index = result + (len);
 
     while (*index != '\\')

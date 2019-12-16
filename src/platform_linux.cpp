@@ -45,6 +45,16 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
 
     readlink("/proc/self/exe", result, MAX_PATH);
 
+    size_t len = strlen(result);
+    char *index = result + (len);
+
+    while (*index != '/')
+    {
+        --index;
+    }
+
+    *(++index) = '\0';
+
     return result;
 }
 
