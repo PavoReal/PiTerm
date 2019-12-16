@@ -29,9 +29,7 @@ AppendToBuffer(u8 *buffer, u32 *bufferSize, char *fmt, ...)
 int
 main(int argc, char **argv)
 {
-#if defined(TERM_GUI)
-        SDL_SetMainReady();
-#endif
+    SDL_SetMainReady();
         
 #define PORT_MAX_LENGTH (KILOBYTES(1))
     char *port = (char*) malloc(PORT_MAX_LENGTH + 1);
