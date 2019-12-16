@@ -56,7 +56,7 @@ struct v4
     };
 };
 
-typedef u8 PlatformTerminalInputTextFlags;
+typedef u32 PlatformTerminalInputTextFlags;
 enum PlatformTerminalInputTextFlags_
 {
     PlatformTerminalInputTextFlags_None                = 0,
@@ -76,7 +76,7 @@ enum PlatformTerminalInputTextFlags_
     PlatformTerminalInputTextFlags_CharsScientific     = 1 << 17,  // Allow 0123456789.+-*/eE (Scientific notation input)
 };
 
-typedef u8 PlatformTerminalResult;
+typedef u32 PlatformTerminalResult;
 enum PlatformTerminalResult_
 {
     PlatformTerminalResult_None = 0,
@@ -111,7 +111,7 @@ enum PlatformInterfaceBaudRate
 #define PLATFORM_INTERFACE_SET_BLOCKING(name) int name(Interface _interface, bool shouldBlock)
 
 //
-// Terminal (UI)
+// Terminal
 //
 #define PLATFORM_TERM_INIT(name) Term name(int *errorCode)
 #define PLATFORM_TERM_STOP(name) PlatformTerminalResult name(Term _term)
@@ -132,38 +132,24 @@ enum PlatformInterfaceBaudRate
 
 #define PLATFORM_TERM_INPUT_TEXT(name) PlatformTerminalResult name(Term _term, char *label, char *buffer, u32 bufferSize, PlatformTerminalInputTextFlags flags)
 
-#if defined(TERM_GUI)
-	#define SDL_MAIN_HANDLED
-	#include <SDL.h>
-	#include "imgui.h"
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+#include "imgui.h"
 
-	struct TerminalState
-	{
-		SDL_Window *window;
-		SDL_GLContext glContext;
+struct TerminalState
+{
+	SDL_Window *window;
+	SDL_GLContext glContext;
 
-        v4 clearColor;
+    v4 clearColor;
 
-		bool scrollLock;
-        bool openSettings;
-	};
-#endif
+	bool scrollLock;
+    bool openSettings;
+};
 
 #if defined(_WIN32)
     #include "platform_win32.cpp"
-
-    #if defined(TERM_GUI)
-        #pragma message("Using IMGUI ui...")
-    #else
-        #error WIN32 build requires TERM_GUI...
-    #endif
 #else
     #include "platform_linux.cpp"
-
-    #if defined(TERM_GUI)
-        #pragma message("Using IMGUI ui...")
-    #else
-        #pragma message("Using ncurses ui...")
-    #endif
 #endif
 #endif

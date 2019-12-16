@@ -4,14 +4,14 @@ CC=gcc
 CXX=g++
 LD=g++
 
-CXX_FLAGS="-Wall -Wextra -Wno-int-to-pointer-cast -Wno-write-strings -Wno-unknown-pragmas -I/usr/local/include/SDL2 -D_REENTRANT -DTERM_GUI -DIMGUI_IMPL_OPENGL_LOADER_GL3W"
+CXX_FLAGS="-Wall -Wextra -Wno-int-to-pointer-cast -Wno-write-strings -Wno-unknown-pragmas -I/usr/local/include/SDL2 -D_REENTRANT -DIMGUI_IMPL_OPENGL_LOADER_GL3W"
 CXX_FLAGS_DEBUG="-g -O0 -DDEBUG"
 CXX_FLAGS_REL="-O2"
 
 LD_FLAGS="-Wall -Wextra"
 LD_FLAGS_DEBUG=""
 LD_FLAGS_REL="-flto"
-LD_LIBS="-lncurses -lGL -ldl -L/usr/local/lib -Wl,-rpath,/usr/local/lib -Wl,--enable-new-dtags -pthread -lSDL2"
+LD_LIBS="-lGL -ldl -L/usr/local/lib -Wl,-rpath,/usr/local/lib -Wl,--enable-new-dtags -pthread -lSDL2"
 
 while getopts "dr" ARG; do
     case $ARG in

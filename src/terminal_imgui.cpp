@@ -46,6 +46,7 @@ PLATFORM_TERM_INIT(TermInit)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.IniFilename = "PiTerm.ini";
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

@@ -220,8 +220,4 @@ PLATFORM_INTERFACE_TIME_TO_MS(InterfaceTimeToMS)
     return (double) result;
 }
 
-#if defined(TERM_GUI)
-    #include "platform_imgui.cpp"
-#else
-    #include "platform_linux_ncurses.cpp"
-#endif
+#include "terminal_imgui.cpp"
