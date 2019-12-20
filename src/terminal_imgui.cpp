@@ -5,6 +5,8 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
+#include "terminal_style_edit.cpp"
+
 PLATFORM_TERM_INIT(TermInit)
 {
     TerminalState *state = (TerminalState*) malloc(sizeof(TerminalState));
@@ -48,7 +50,17 @@ PLATFORM_TERM_INIT(TermInit)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.IniFilename = "PiTerm.ini";
 
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsLight();
+    
+    ImGuiStyle &style = ImGui::GetStyle();
+    
+    style.FrameRounding   = 6;
+    style.GrabRounding    = style.FrameRounding;
+    style.ChildBorderSize = 0;
+    
+    ImVec4* colors = style.Colors;
+    colors[ImGuiCol_FrameBg]  = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
+    
 
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -62,6 +74,7 @@ PLATFORM_TERM_INIT(TermInit)
 
     state->bootloaderInputRootPath = (char*) calloc(MAX_PATH, 1);
     state->bootloaderInputFilePath = (char*) calloc(MAX_PATH, 1);
+    state->bootloaderSelectedPath  = (char*) calloc(MAX_PATH, 1);
 
     char *startPath = PlatformGetEXEDirectory();
 
@@ -88,6 +101,7 @@ PLATFORM_TERM_STOP(TermStop)
 
     free(term->bootloaderInputFilePath);
     free(term->bootloaderInputRootPath);
+    free(term->bootloaderSelectedPath);
     free(term);
 
     return 0;
@@ -162,27 +176,9 @@ PLATFORM_TERM_HEADER_STOP(TermHeaderStop)
     if (term->openSettings)
     {
         ImGui::Begin("Settings");
-
-        if (ImGui::Button("Reset Background Color"))
-        {
-            term->clearColor = { 0.45f, 0.55f, 0.6f, 1.00f };
-        }
-        ImGui::ColorPicker4("Background Color", term->clearColor._d);
-
-        ImGui::End();
-    }
-
-    if (term->openBootloader)
-    {
-        ImGui::Begin("Bootloader");
-
-        if (ImGui::Button("Upload"))
-        {
-            printf("Bootloader uploading has yet to be implemented...\n");
-        }
         
-        ImGui::Text(term->bootloaderInputRootPath);
-
+        ShowStyleEditor(0, _term);
+        
         ImGui::End();
     }
 
@@ -205,6 +201,11 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
     {
         result = PlatformTerminalResult_ClearConsole;
     }
+    ImGui::Separator();
+    if (ImGui::Button("Export"))
+    {
+        // TODO
+    }
 
     ImGui::EndMenuBar();
 
@@ -224,6 +225,91 @@ PLATFORM_TERM_BODY_STOP(TermBodyStop)
     ImGui::End();
 
     return 0;
+}
+
+PLATFORM_TERM_BOOTLOADER_START(TermBootloaderStart) 
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    if (term->openBootloader)
+    {
+        ImGui::Begin("Bootloader");
+    }
+    
+    return term->openBootloader;
+}
+
+PLATFORM_TERM_BOOTLOADER_STOP(TermBootloaderStop)
+{
+    TerminalState *term = (TerminalState*) _term;
+    UNUSED(term);
+    
+        ImGui::End();
+    
+    
+    return 0;
+}
+
+PLATFORM_TERM_MESSAGE_BOX(TermMessageBox)
+{
+    TerminalState *term = (TerminalState*) _term;
+    UNUSED(term);
+    
+    va_list args;
+    va_start(args, fmt);
+    
+    ImGui::OpenPopup(title);
+    
+    if (ImGui::BeginPopup(title))
+    {
+        ImGui::TextV(fmt, args);
+        
+        ImGui::EndPopup();
+    }
+    
+    va_end(args);
+    
+    return 0;
+}
+
+PLATFORM_TERM_GET_BOOTLOADER_FILE_PATH(TermGetBootloaderFilePath)
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    return term->bootloaderInputFilePath;
+}
+
+PLATFORM_TERM_SET_BOOTLOADER_FILE_PATH(TermSetBootloaderFilePath)
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    strcpy(term->bootloaderInputFilePath, path);
+    
+    
+    return 0;
+}
+
+PLATFORM_TERM_GET_BOOTLOADER_ROOT_PATH(TermGetBootloaderFileRootPath)
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    return term->bootloaderInputRootPath;
+}
+
+PLATFORM_TERM_SET_BOOTLOADER_FILE_PATH(TermSetBootloaderFileRootPath)
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    strcpy(term->bootloaderInputRootPath, path);
+    
+    return 0;
+}
+
+PLATFORM_TERM_GET_BOOTLOADER_SELECTED_PATH(TermGetBootloaderSelectedPath)
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    return term->bootloaderSelectedPath;
 }
 
 PLATFORM_TERM_PRINTF(TermPrintf)
@@ -287,4 +373,18 @@ PLATFORM_TERM_INPUT_TEXT(TermInputText)
 
     bool result = ImGui::InputText(label, buffer, bufferSize, flags);
     return result;
+}
+
+
+PLATFORM_TERM_FILE_SELECTOR(TermFileSelector)
+{
+    TerminalState *term = (TerminalState*) _term;
+    
+    ImGui::BeginGroup();
+    
+    ImGui::Text(rootPath);
+    
+    ImGui::EndGroup();
+    
+    return 0;
 }

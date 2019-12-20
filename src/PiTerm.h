@@ -86,6 +86,7 @@ enum PlatformTerminalResult_
 
     PlatformTerminalResult_ClearConsole = 1 << 2,
     PlatformTerminalResult_Quit         = 1 << 3,
+    PlatformTerminalResult_HasResult    = 1 << 4,
 };
 
 enum PlatformInterfaceBaudRate
@@ -126,8 +127,15 @@ enum PlatformInterfaceBaudRate
 
 #define PLATFORM_TERM_HEADER_START(name) PlatformTerminalResult name(Term _term)
 #define PLATFORM_TERM_HEADER_STOP(name) PlatformTerminalResult name(Term _term)
+
 #define PLATFORM_TERM_BODY_START(name) PlatformTerminalResult name(Term _term)
 #define PLATFORM_TERM_BODY_STOP(name) PlatformTerminalResult name(Term _term)
+
+#define PLATFORM_TERM_BOOTLOADER_START(name) bool name(Term _term)
+#define PLATFORM_TERM_BOOTLOADER_STOP(name) PlatformTerminalResult name(Term _term)
+
+
+#define PLATFORM_TERM_MESSAGE_BOX(name) PlatformTerminalResult name(Term _term, const char *title, const char *fmt, ...)
 
 #define PLATFORM_TERM_SAME_LINE(name) PlatformTerminalResult name(Term _term)
 #define PLATFORM_TERM_BUTTON(name) PlatformTerminalResult name(Term _term, char *label)
@@ -136,6 +144,17 @@ enum PlatformInterfaceBaudRate
 #define PLATFORM_TERM_PRINT_BUFFER(name) PlatformTerminalResult name(Term _term, u8 *buffer, u32 bufferSize)
 
 #define PLATFORM_TERM_INPUT_TEXT(name) PlatformTerminalResult name(Term _term, char *label, char *buffer, u32 bufferSize, PlatformTerminalInputTextFlags flags)
+
+#define PLATFORM_TERM_FILE_SELECTOR(name) PlatformTerminalResult name(Term _term, char *rootPath, char *result)
+
+#define PLATFORM_TERM_GET_BOOTLOADER_FILE_PATH(name) char* name(Term _term)
+#define PLATFORM_TERM_SET_BOOTLOADER_FILE_PATH(name) PlatformTerminalResult name(Term _term, char *path)
+
+#define PLATFORM_TERM_GET_BOOTLOADER_ROOT_PATH(name) char* name(Term _term)
+#define PLATFORM_TERM_SET_BOOTLOADER_ROOT_PATH(name) PlatformTerminalResult name(Term _term, char *path)
+
+#define PLATFORM_TERM_GET_BOOTLOADER_SELECTED_PATH(name) char* name(Term _term)
+
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -150,6 +169,7 @@ struct TerminalState
 
     char *bootloaderInputRootPath;
     char *bootloaderInputFilePath;
+    char *bootloaderSelectedPath;
 
 	bool scrollLock;
 

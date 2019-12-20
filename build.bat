@@ -18,14 +18,16 @@ mkdir build 2> NUL
 
 pushd build\
 
+del *.obj
+
 copy ..\libs\win32\release\SDL2.lib .\
 copy ..\libs\win32\release\SDL2.dll .\
 
 cl /c %CPP_FLAGS% %CPP_FLAGS_DEBUG% ..\src\main.cpp 
 if %ERRORLEVEL% neq 0 goto done
 
-cl /c %CPP_FLAGS% %CPP_FLAGS_DEBUG% ..\src\gl3w.c
-cl /c %CPP_FLAGS% %CPP_FLAGS_DEBUG% ..\src\imgui*.cpp
+cl /c %CPP_FLAGS% %CPP_FLAGS_REL% ..\src\gl3w.c
+cl /c %CPP_FLAGS% %CPP_FLAGS_REL% ..\src\imgui*.cpp
 
 link %LD_FLAGS% *.obj /OUT:PiTerm.exe
 

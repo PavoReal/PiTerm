@@ -15,12 +15,24 @@
 #include "PiTerm.h"
 
 inline void
-AppendToBuffer(u8 *buffer, u32 *bufferSize, char *fmt, ...)
+AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-
-    int advance = stbsp_vsprintf((char*) (buffer + *bufferSize), fmt, args);
+    
+    char buf[4096];
+    
+    int advance = stbsp_vsprintf(buf, fmt, args);
+    
+    u32 newSize = *bufferSize + advance;
+    
+    if (newSize > bufferMaxSize)
+    {
+        *bufferSize = 0;
+    }
+    
+    strcpy((char*) buffer + (*bufferSize), buf);
+    
     *bufferSize += advance;
 
     va_end(args);
@@ -65,9 +77,14 @@ main(int argc, char **argv)
     bool interfaceGood = (error == 0);
     if (!interfaceGood)
     {
-        AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Could not connect to %s <<<\n", port);
+        AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Could not connect to %s <<<\n", port);
     }
-
+    
+    char *exeDir = PlatformGetEXEDirectory();
+    TermSetBootloaderFileRootPath(term, exeDir);
+    
+    free(exeDir);
+    
     bool running = true;
     double lastFrameTime = 0;
 
@@ -80,10 +97,11 @@ main(int argc, char **argv)
             running = false;
             break;
         }
-
+        
+        int bytesRead = 0;
+        {
         TermHeaderStart(term);
 
-        int bytesRead = 0;
         if (interfaceGood)
         {
             bytesRead = InterfaceRead(interface, readBuffer, READ_BUFFER_SIZE);
@@ -95,7 +113,7 @@ main(int argc, char **argv)
                 InterfaceDisconnect(interface);
                 interfaceGood = false;
 
-                AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Disconnected to %s <<<\n", port);
+                AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Disconnected to %s <<<\n", port);
             }
         }
         else
@@ -111,11 +129,11 @@ main(int argc, char **argv)
 
                 if (interfaceGood)
                 {
-                    AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Connected to %s <<<\n", port);
+                        AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Connected to %s <<<\n", port);
                 }
                 else
                 {
-                    AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> Could not connect to %s <<<\n", port);
+                        AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Could not connect to %s <<<\n", port);
                 }
             }
 
@@ -130,19 +148,45 @@ main(int argc, char **argv)
         TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
         TermPrintf(term, "Frame time: %lf ms", lastFrameTime);
 
-        TermHeaderStop(term);
-
+            TermHeaderStop(term);
+        }
+        
+        {
+            if (TermBootloaderStart(term))
+            {
+                if (TermButton(term, "Upload"))
+                {
+                    // TODO(Peacock): This is straight up broken...
+                    TermMessageBox(term, "TODO", "TODO -- Sorry");
+                }
+                
+                TermSameLine(term);
+                TermPrintf(term, "%s", TermGetBootloaderFilePath(term));
+                
+                char *rootPath = TermGetBootloaderFileRootPath(term);
+                char *selectedPath = TermGetBootloaderSelectedPath(term);
+                
+                if (TermFileSelector(term, rootPath, selectedPath) == PlatformTerminalResult_HasResult)
+                {
+                    TermSetBootloaderFilePath(term, selectedPath);
+                }
+                
+                TermBootloaderStop(term);
+            }
+        }
+        
+        {
         if (TermBodyStart(term) == (PlatformTerminalResult_ClearConsole))
         {
             consoleBufferSize = 0;
-        }
+            }
 
         TermPrintBuffer(term, consoleBuffer, consoleBufferSize);
         if (TermInputText(term, "", (char*) txBuffer, READ_BUFFER_SIZE, PlatformTerminalInputTextFlags_AutoSelectAll | PlatformTerminalInputTextFlags_EnterReturnsTrue))
         {
             s32 len = (s32) strlen((char*) txBuffer);
 
-            AppendToBuffer(consoleBuffer, &consoleBufferSize, ">>> %.*s\n", len, (char*) txBuffer);
+                AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> %.*s\n", len, (char*) txBuffer);
 
             u32 sizeToSend = len + 1;
             u8 *toSend = (u8*) malloc(sizeToSend);
@@ -161,21 +205,22 @@ main(int argc, char **argv)
         }
 
         if (bytesRead)
-        {
+            {
             time_t t     = time(NULL);
             struct tm tm = *localtime(&t);
 
-            AppendToBuffer(consoleBuffer, &consoleBufferSize, "[%d:%d:%d] %.*s",  
+                AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, "[%d:%d:%d] %.*s",  
                                         tm.tm_hour, tm.tm_min, tm.tm_sec, 
                                         bytesRead, readBuffer);
-
+                
             if (consoleBuffer[consoleBufferSize - 1] != '\n')
             {
-                AppendToBuffer(consoleBuffer, &consoleBufferSize, "\n");
+                    AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, "\n");
             }
         }
 
-        TermBodyStop(term);
+            TermBodyStop(term);
+        }
         TermFrameStop(term);
 
         TimeCount endTime = PlatformGetTime();
