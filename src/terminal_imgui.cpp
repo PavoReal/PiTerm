@@ -56,7 +56,6 @@ PLATFORM_TERM_INIT(TermInit)
     
     style.FrameRounding   = 6;
     style.GrabRounding    = style.FrameRounding;
-    style.ChildBorderSize = 0;
     *((float*) &style.WindowTitleAlign) = 0.5f;
     
     ImVec4* colors = style.Colors;
@@ -381,11 +380,41 @@ PLATFORM_TERM_FILE_SELECTOR(TermFileSelector)
 {
     TerminalState *term = (TerminalState*) _term;
     
-    ImGui::BeginGroup();
+    PlatformTerminalResult res = 0;
     
-    ImGui::Text(rootPath);
+    ImGui::BeginChild(result, ImVec2(0,0), true);
     
-    ImGui::EndGroup();
+    ImGui::InputText("", term->bootloaderInputRootPath, MAX_PATH);
     
-    return 0;
+    PlatformFileIterator iter = PlatformDirectoryIterator(rootPath);
+    
+    if (iter.isValid)
+    {
+        PlatformFileIndex *index = PlatformDirectoryIteratorNext(&iter);
+        
+        if (index)
+        {
+            char *name   = PlatformFileIndexGetName(index);
+            u64 fileSize = PlatformFileIndexGetSize(index);
+            
+            if (ImGui::Selectable(name))
+            {
+                strcpy(term->bootloaderSelectedPath, name);
+                res = PlatformTerminalResult_HasResult;
+            }
+            
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.4f, 1.0f), "%lu bytes", fileSize);
+        }
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(0.9f, 0.05f, 0.05f, 1.0f), "Invalid path");
+    }
+    
+    PlatformDirectoryIteratorClose(&iter);
+    
+    ImGui::EndChild();
+    
+    return res;
 }

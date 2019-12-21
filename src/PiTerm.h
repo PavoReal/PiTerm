@@ -95,12 +95,29 @@ enum PlatformInterfaceBaudRate
     INTERFACE_BAUD_115200
 };
 
+typedef void* PlatformFileIndex;
+struct PlatformFileIterator
+{
+    bool isValid;
+    
+    PlatformFileIndex *currentFile;
+    
+    void *_platform;
+};
+
 // 
 // General platform shit
 //
 #define PLATFORM_GET_TIME(name) TimeCount name()
 #define PLATFORM_TIME_TO_MS(name) double name(TimeCount _time)
 #define PLATFORM_GET_EXE_DIRECTORY(name) char* name()
+
+#define PLATFORM_DIR_ITERATOR(name) PlatformFileIterator name(char *path)
+#define PLATFORM_DIR_ITERATOR_CLOSE(name) void name(PlatformFileIterator *iter)
+#define PLATFORM_DIR_ITERATOR_NEXT(name) PlatformFileIndex* name(PlatformFileIterator *iter)
+
+#define PLATFORM_FILE_INDEX_GET_NAME(name) char* name(PlatformFileIndex *file)
+#define PLATFORM_FILE_INDEX_GET_SIZE(name) u64 name(PlatformFileIndex *file)
 
 //
 // Interface (UART) 
@@ -109,7 +126,6 @@ enum PlatformInterfaceBaudRate
 #define PLATFORM_INTERFACE_STOP(name) int name(Interface _interface)
 #define PLATFROM_INTERFACE_REINIT(name) int name(Interface _interface, char *portName, PlatformInterfaceBaudRate baud = INTERFACE_BAUD_115200)
 #define PLATFORM_INTERFACE_DISCONENCT(name) int name(Interface _interface)
-
 
 #define PLATFORM_INTERFACE_READ(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)
 #define PLATFORM_INTERFACE_WRITE(name) int name(Interface _interface, u8 *buffer, u32 bufferSize)

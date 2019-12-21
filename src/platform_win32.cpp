@@ -44,6 +44,67 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
     return result;
 }
 
+ PLATFORM_DIR_ITERATOR(PlatformDirectoryIterator)
+{
+    PlatformFileIterator result = {};
+    
+    WIN32_FIND_DATAA findData;
+    
+    HANDLE findHandle = FindFirstFileA(path, &findData);
+    
+    if (findHandle != INVALID_HANDLE_VALUE)
+    {
+        result.isValid = true;
+        
+        result._platform = (void*) findHandle;
+        
+        WIN32_FIND_DATAA *firstFile = (WIN32_FIND_DATAA*) malloc(sizeof(WIN32_FIND_DATAA));
+        
+        *firstFile = findData;
+        
+        result.currentFile = (PlatformFileIndex*) firstFile;
+        
+    }
+    else
+    {
+        result.isValid = false;
+    }
+    
+    
+    return result;
+}
+
+PLATFORM_DIR_ITERATOR_NEXT(PlatformDirectoryIteratorNext)
+{
+    HANDLE findHandle = (HANDLE) iter->_platform;
+    
+    if (FindNextFileA(findHandle, (WIN32_FIND_DATAA*) iter->currentFile) != 0)
+    {
+        return iter->currentFile;
+    }
+    
+    return 0;
+}
+
+ PLATFORM_DIR_ITERATOR_CLOSE(PlatformDirectoryIteratorClose)
+{
+    free(iter->currentFile);
+    
+    FindClose((HANDLE) iter->_platform);
+}
+
+PLATFORM_FILE_INDEX_GET_NAME(PlatformFileIndexGetName)
+{
+    WIN32_FIND_DATAA *data = (WIN32_FIND_DATAA*) file;
+    
+    return data->cFileName;
+}
+
+PLATFORM_FILE_INDEX_GET_SIZE(PlatformFileIndexGetSize)
+{
+    return 0;
+}
+
 PLATFORM_INTERFACE_READ(InterfaceRead)
 {
     WIN32InterfaceState *interface = (WIN32InterfaceState*) _interface;
