@@ -5,7 +5,6 @@ patterns = {
 "*.c",
 "*.cpp",
 "*.h",
-"*.m",
 "*.bat",
 "*.sh",
 "*.4coder",
@@ -13,7 +12,7 @@ patterns = {
 };
 blacklist_patterns = {
 ".*",
-".\\libs\*"
+".\\libs\\*"
 };
 load_paths_only = {
  {"."},

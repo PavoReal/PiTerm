@@ -57,6 +57,7 @@ PLATFORM_TERM_INIT(TermInit)
     style.FrameRounding   = 6;
     style.GrabRounding    = style.FrameRounding;
     style.ChildBorderSize = 0;
+    *((float*) &style.WindowTitleAlign) = 0.5f;
     
     ImVec4* colors = style.Colors;
     colors[ImGuiCol_FrameBg]  = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
