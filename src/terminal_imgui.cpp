@@ -285,7 +285,6 @@ PLATFORM_TERM_SET_BOOTLOADER_FILE_PATH(TermSetBootloaderFilePath)
     
     strcpy(term->bootloaderInputFilePath, path);
     
-    
     return 0;
 }
 
@@ -443,6 +442,7 @@ PLATFORM_TERM_FILE_SELECTOR(TermFileSelector)
                     strcpy(term->bootloaderSelectedPath, term->bootloaderInputRootPath);
                     strcpy(term->bootloaderSelectedPath + strlen(term->bootloaderSelectedPath), PLATFORM_FILE_SEPERATOR);
                     strcpy(term->bootloaderSelectedPath + strlen(term->bootloaderSelectedPath), name);
+                    
                 res = PlatformTerminalResult_HasResult;
                 }
             }

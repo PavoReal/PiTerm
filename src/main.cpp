@@ -146,7 +146,9 @@ main(int argc, char **argv)
         TermPrintf(term, "BAUD: 115200");
         TermPrintf(term, "RX Rate: %d", bitsPerSecond);
         TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
-        TermPrintf(term, "Frame time: %lf ms", lastFrameTime);
+#if defined(DEBUG)
+            TermPrintf(term, "Frame time: %lf ms", lastFrameTime);
+            #endif
 
             TermHeaderStop(term);
         }
@@ -229,6 +231,13 @@ main(int argc, char **argv)
         double endMS   = PlatformTimeToMS(endTime);
 
         lastFrameTime = endMS - startMS;
+        
+        if (lastFrameTime <= 16)
+        {
+            double diff = 15 - lastFrameTime;
+            
+            PlatformSleepMS((u32) diff);
+        }
     }
 
     InterfaceStop(interface);

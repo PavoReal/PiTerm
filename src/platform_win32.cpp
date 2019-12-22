@@ -130,6 +130,11 @@ PLATFORM_FILE_INDEX_IS_DIR(PlatformFileIndexIsDir)
     return (data->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
+PLATFORM_SLEEP_MS(PlatformSleepMS)
+{
+    Sleep(millis);
+}
+
 #if 0
 PLATFORM_FILE_INDEX_GET_PATH(PlatformFileIndexGetPath)
 {
