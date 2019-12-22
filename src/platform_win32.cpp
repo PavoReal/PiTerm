@@ -39,7 +39,7 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
         --index;
     }
 
-    *(++index) = '\0';
+    *(index) = '\0';
 
     return result;
 }
@@ -50,7 +50,16 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
     
     WIN32_FIND_DATAA findData;
     
-    HANDLE findHandle = FindFirstFileA(path, &findData);
+    char pathBuffer[MAX_PATH];
+    
+    strcpy(pathBuffer, path);
+    
+    size_t len = strlen(pathBuffer);
+     pathBuffer[len++] = '\\';
+    pathBuffer[len++] = '*';
+    pathBuffer[len++] = '\0';
+    
+    HANDLE findHandle = FindFirstFileA(pathBuffer, &findData);
     
     if (findHandle != INVALID_HANDLE_VALUE)
     {
@@ -77,8 +86,9 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
 PLATFORM_DIR_ITERATOR_NEXT(PlatformDirectoryIteratorNext)
 {
     HANDLE findHandle = (HANDLE) iter->_platform;
+    WIN32_FIND_DATAA *data = (WIN32_FIND_DATAA*) iter->currentFile;
     
-    if (FindNextFileA(findHandle, (WIN32_FIND_DATAA*) iter->currentFile) != 0)
+    if (FindNextFileA(findHandle, data) != 0)
     {
         return iter->currentFile;
     }
@@ -88,9 +98,15 @@ PLATFORM_DIR_ITERATOR_NEXT(PlatformDirectoryIteratorNext)
 
  PLATFORM_DIR_ITERATOR_CLOSE(PlatformDirectoryIteratorClose)
 {
-    free(iter->currentFile);
-    
-    FindClose((HANDLE) iter->_platform);
+    if (iter->isValid)
+    {
+        if (iter->currentFile)
+        {
+            free(iter->currentFile);
+        }
+        
+        FindClose((HANDLE) iter->_platform);
+    }
 }
 
 PLATFORM_FILE_INDEX_GET_NAME(PlatformFileIndexGetName)
@@ -102,8 +118,31 @@ PLATFORM_FILE_INDEX_GET_NAME(PlatformFileIndexGetName)
 
 PLATFORM_FILE_INDEX_GET_SIZE(PlatformFileIndexGetSize)
 {
-    return 0;
+    WIN32_FIND_DATAA *data = (WIN32_FIND_DATAA*) file;
+    
+    return ((u64) data->nFileSizeLow) | ((u64) data->nFileSizeHigh << 32);
 }
+
+PLATFORM_FILE_INDEX_IS_DIR(PlatformFileIndexIsDir)
+{
+    WIN32_FIND_DATAA *data = (WIN32_FIND_DATAA*) file;
+    
+    return (data->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+#if 0
+PLATFORM_FILE_INDEX_GET_PATH(PlatformFileIndexGetPath)
+{
+    WIN32_FIND_DATAA *data = (WIN32_FIND_DATAA*) file;
+    
+    char *result = (char*) malloc(MAX_PATH);
+    char *namePart;
+    
+    GetFullPathNameA(data->cFileName, MAX_PATH, result, &namePart);
+    
+    return result;
+}
+#endif
 
 PLATFORM_INTERFACE_READ(InterfaceRead)
 {

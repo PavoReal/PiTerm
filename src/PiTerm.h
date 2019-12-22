@@ -118,6 +118,7 @@ struct PlatformFileIterator
 
 #define PLATFORM_FILE_INDEX_GET_NAME(name) char* name(PlatformFileIndex *file)
 #define PLATFORM_FILE_INDEX_GET_SIZE(name) u64 name(PlatformFileIndex *file)
+#define PLATFORM_FILE_INDEX_IS_DIR(name) bool name(PlatformFileIndex *file)
 
 //
 // Interface (UART) 

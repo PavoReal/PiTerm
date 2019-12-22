@@ -11,4 +11,6 @@ struct WIN32InterfaceState
 
 GLOBAL LARGE_INTEGER PerformanceFreq = {};
 
+#define PLATFORM_FILE_SEPERATOR "\\"
+
 #endif

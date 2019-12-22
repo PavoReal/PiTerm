@@ -53,7 +53,7 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
         --index;
     }
 
-    *(++index) = '\0';
+    *(index) = '\0';
 
     return result;
 }

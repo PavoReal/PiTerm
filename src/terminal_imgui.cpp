@@ -390,21 +390,67 @@ PLATFORM_TERM_FILE_SELECTOR(TermFileSelector)
     
     if (iter.isValid)
     {
-        PlatformFileIndex *index = PlatformDirectoryIteratorNext(&iter);
+        PlatformFileIndex *index = iter.currentFile;
         
-        if (index)
+        char dirBuffer[MAX_PATH];
+         while(index)
         {
             char *name   = PlatformFileIndexGetName(index);
             u64 fileSize = PlatformFileIndexGetSize(index);
+            bool isDir   = PlatformFileIndexIsDir(index);
             
-            if (ImGui::Selectable(name))
+            const char *dirMarker = "> ";
+            
+            if (isDir)
             {
-                strcpy(term->bootloaderSelectedPath, name);
+                strcpy(dirBuffer, dirMarker);
+                strcpy(dirBuffer + strlen(dirMarker), name);
+            }
+            else
+            {
+                strcpy(dirBuffer, name);
+            }
+            
+            if (ImGui::Selectable(dirBuffer))
+            {
+                if (isDir)
+                {
+                    size_t len = strlen(term->bootloaderInputRootPath);
+                    
+                    if (strcmp(name, ".") == 0)
+                    {
+                        continue;
+                    }
+                    else if (strcmp(name, "..") == 0)
+                    {
+                        char *i = term->bootloaderInputRootPath + len;
+                        
+                        while (*i != *PLATFORM_FILE_SEPERATOR)
+                        {
+                            --i;
+                        }
+                        
+                        *i = '\0';
+                    }
+                    else
+                    {
+                        strcpy(term->bootloaderInputRootPath + len, PLATFORM_FILE_SEPERATOR);
+                        strcpy(term->bootloaderInputRootPath + strlen(term->bootloaderInputRootPath), name);
+                    }
+                }
+                else
+                {
+                    strcpy(term->bootloaderSelectedPath, term->bootloaderInputRootPath);
+                    strcpy(term->bootloaderSelectedPath + strlen(term->bootloaderSelectedPath), PLATFORM_FILE_SEPERATOR);
+                    strcpy(term->bootloaderSelectedPath + strlen(term->bootloaderSelectedPath), name);
                 res = PlatformTerminalResult_HasResult;
+                }
             }
             
             ImGui::SameLine();
             ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.4f, 1.0f), "%lu bytes", fileSize);
+            
+            index = PlatformDirectoryIteratorNext(&iter);
         }
     }
     else
