@@ -122,6 +122,8 @@ struct PlatformFileIterator
 
 #define PLATFORM_SLEEP_MS(name) void name(u32 millis)
 
+#define PLATFORM_GET_DUMMY_TARGET(name) char* name()
+
 //
 // Interface (UART) 
 //

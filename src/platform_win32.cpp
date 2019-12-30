@@ -5,6 +5,14 @@
 
 #include <stdarg.h>
 
+PLATFORM_GET_DUMMY_TARGET(PlatformGetDummyTarget)
+{
+    // This targets the USB port on my PC, maybe in the future try to guess what the correct port is
+    char *target = "COM4";
+    
+    return target;
+}
+
 PLATFORM_GET_TIME(PlatformGetTime)
 {
     LARGE_INTEGER count = {};

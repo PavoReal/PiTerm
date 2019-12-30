@@ -47,7 +47,7 @@ main(int argc, char **argv)
     char *port = (char*) malloc(PORT_MAX_LENGTH + 1);
 	if (argc <= 1)
 	{
-        const char *dummyTarget = "/dev/ttyUSB0";
+        const char *dummyTarget = PlatformGetDummyTarget();
         strcpy(port, dummyTarget);
 	}
     else
@@ -145,7 +145,8 @@ main(int argc, char **argv)
 
         TermPrintf(term, "BAUD: 115200");
         TermPrintf(term, "RX Rate: %d", bitsPerSecond);
-        TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
+            TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
+            
 #if defined(DEBUG)
             TermPrintf(term, "Frame time: %lf ms", lastFrameTime);
             #endif

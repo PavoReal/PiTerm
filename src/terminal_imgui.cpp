@@ -201,11 +201,15 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
     {
         result = PlatformTerminalResult_ClearConsole;
     }
+    
+#if 0
     ImGui::Separator();
+    
     if (ImGui::Button("Export"))
     {
         // TODO
     }
+    #endif
 
     ImGui::EndMenuBar();
 
