@@ -105,6 +105,12 @@ struct PlatformFileIterator
     void *_platform;
 };
 
+struct FileContents
+{
+    u8 *contents;
+    u32 size;
+};
+
 // 
 // General platform shit
 //
@@ -123,6 +129,9 @@ struct PlatformFileIterator
 #define PLATFORM_SLEEP_MS(name) void name(u32 millis)
 
 #define PLATFORM_GET_DUMMY_TARGET(name) char* name()
+
+#define PLATFORM_READ_FILE_CONTENTS(name) FileContents name(const char *path)
+#define PLATFORM_FREE_FILE_CONTENTS(name) void name(FileContents *file)
 
 //
 // Interface (UART) 

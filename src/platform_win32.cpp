@@ -5,6 +5,58 @@
 
 #include <stdarg.h>
 
+PLATFORM_READ_FILE_CONTENTS(PlatformReadFileContents)
+{
+    FileContents result = {};
+    
+        HANDLE handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    
+    if (handle != INVALID_HANDLE_VALUE)
+    {
+        u32 upperFileSize;
+        u32 lowerFileSize = GetFileSize(handle,(DWORD*)  &upperFileSize);
+        
+        // We don't handle > 4GB files...
+        if (upperFileSize || !lowerFileSize)
+        {
+            return result;
+        }
+        
+        result.size     = lowerFileSize;
+        result.contents = (u8*) malloc(result.size);
+        
+        DWORD totalRead = 0;
+        BOOL error = FALSE;
+        
+        do
+        {
+            DWORD bytesRead = 0;
+            error = ReadFile(handle, result.contents + totalRead, lowerFileSize - totalRead, &bytesRead, 0);
+            
+            totalRead += bytesRead;
+        } while (totalRead < result.size && (!error));
+        
+        if (!error)
+        {
+            free(result.contents);
+            result.size     = 0;
+            result.contents = 0;
+        }
+        
+    CloseHandle(handle);
+    }
+    
+    return result;
+}
+
+PLATFORM_FREE_FILE_CONTENTS(PlatformFreeFileContents)
+{
+    if (file->contents)
+        {
+            free(file->contents);
+        }
+}
+
 PLATFORM_GET_DUMMY_TARGET(PlatformGetDummyTarget)
 {
     // This targets the USB port on my PC, maybe in the future try to guess what the correct port is

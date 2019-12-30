@@ -38,6 +38,8 @@ AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
     va_end(args);
 }
 
+#define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
+
 int
 main(int argc, char **argv)
 {
@@ -77,7 +79,7 @@ main(int argc, char **argv)
     bool interfaceGood = (error == 0);
     if (!interfaceGood)
     {
-        AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Could not connect to %s <<<\n", port);
+        AppendToConsoleBuffer(">>> Could not connect to %s <<<\n", port);
     }
     
     char *exeDir = PlatformGetEXEDirectory();
@@ -113,7 +115,7 @@ main(int argc, char **argv)
                 InterfaceDisconnect(interface);
                 interfaceGood = false;
 
-                AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Disconnected to %s <<<\n", port);
+                AppendToConsoleBuffer(">>> Disconnected to %s <<<\n", port);
             }
         }
         else
@@ -129,11 +131,11 @@ main(int argc, char **argv)
 
                 if (interfaceGood)
                 {
-                        AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Connected to %s <<<\n", port);
+                        AppendToConsoleBuffer(">>> Connected to %s <<<\n", port);
                 }
                 else
                 {
-                        AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> Could not connect to %s <<<\n", port);
+                        AppendToConsoleBuffer(">>> Could not connect to %s <<<\n", port);
                 }
             }
 
@@ -157,16 +159,30 @@ main(int argc, char **argv)
         {
             if (TermBootloaderStart(term))
             {
+                char *targetFilePath = TermGetBootloaderFilePath(term);
+                
                 if (TermButton(term, "Upload"))
                 {
-                    // TODO(Peacock): This is straight up broken...
-                    TermMessageBox(term, "TODO", "TODO -- Sorry");
+                    FileContents file = PlatformReadFileContents(targetFilePath);
+                    
+                    if (file.size)
+                    {
+                        AppendToConsoleBuffer(">>> Bootloader loaded file %s with size %u bytes <<<\n", targetFilePath, file.size);
+                        
+                            InterfaceWrite(interface, file.contents, file.size);
+                        
+                        PlatformFreeFileContents(&file);
+                    }
+                    else
+                    {
+                        AppendToConsoleBuffer(">>> Bootloader could not open file %s... <<<\n", targetFilePath);
+                    }
                 }
                 
                 TermSameLine(term);
-                TermPrintf(term, "%s", TermGetBootloaderFilePath(term));
+                TermPrintf(term, "%s", targetFilePath);
                 
-                char *rootPath = TermGetBootloaderFileRootPath(term);
+                char *rootPath     = TermGetBootloaderFileRootPath(term);
                 char *selectedPath = TermGetBootloaderSelectedPath(term);
                 
                 if (TermFileSelector(term, rootPath, selectedPath) == PlatformTerminalResult_HasResult)
@@ -189,7 +205,7 @@ main(int argc, char **argv)
         {
             s32 len = (s32) strlen((char*) txBuffer);
 
-                AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, ">>> %.*s\n", len, (char*) txBuffer);
+                AppendToConsoleBuffer(">>> %.*s\n", len, (char*) txBuffer);
 
             u32 sizeToSend = len + 1;
             u8 *toSend = (u8*) malloc(sizeToSend);
@@ -212,13 +228,13 @@ main(int argc, char **argv)
             time_t t     = time(NULL);
             struct tm tm = *localtime(&t);
 
-                AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, "[%d:%d:%d] %.*s",  
+                AppendToConsoleBuffer("[%d:%d:%d] %.*s",  
                                         tm.tm_hour, tm.tm_min, tm.tm_sec, 
                                         bytesRead, readBuffer);
                 
             if (consoleBuffer[consoleBufferSize - 1] != '\n')
             {
-                    AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, "\n");
+                    AppendToConsoleBuffer("\n");
             }
         }
 
