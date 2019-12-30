@@ -13,6 +13,7 @@
 
 #include <stdarg.h>
 #include "PiTerm.h"
+#include "Bootloader.h"
 
 inline void
 AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
@@ -37,8 +38,15 @@ AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
 
     va_end(args);
 }
-
 #define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
+
+
+inline int
+InterfaceWriteU32(Interface interface, u32 data) 
+{
+    return InterfaceWrite(interface, (u8*) &data, 4);
+}
+#define InterfaceWriteCommand(i,d) InterfaceWriteU32(i, d)
 
 int
 main(int argc, char **argv)
@@ -169,7 +177,10 @@ main(int argc, char **argv)
                     {
                         AppendToConsoleBuffer(">>> Bootloader loaded file %s with size %u bytes <<<\n", targetFilePath, file.size);
                         
-                            InterfaceWrite(interface, file.contents, file.size);
+                        
+                        
+                        
+                            //InterfaceWrite(interface, file.contents, file.size);
                         
                         PlatformFreeFileContents(&file);
                     }
@@ -212,7 +223,10 @@ main(int argc, char **argv)
 
             strcpy((char*) toSend, (char*) txBuffer);
             toSend[sizeToSend - 1] = '\0';
-
+                
+                InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_ECHO_SIZE);
+                InterfaceWriteU32(interface, sizeToSend);
+                
             InterfaceWrite(interface, toSend, sizeToSend);
 
             free(toSend);

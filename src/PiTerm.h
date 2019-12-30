@@ -146,6 +146,9 @@ struct FileContents
 #define PLATFORM_INTERFACE_SET_ATTRIBS(name) int name(Interface _interface, PlatformInterfaceBaudRate baud)
 #define PLATFORM_INTERFACE_SET_BLOCKING(name) int name(Interface _interface, bool shouldBlock)
 
+// Interface helpers
+
+
 //
 // Terminal
 //
