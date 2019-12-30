@@ -6,4 +6,6 @@ struct LinuxInterfaceState
 	int fd;
 };
 
+#define PLATFORM_FILE_SEPERATOR "/"
+
 #endif

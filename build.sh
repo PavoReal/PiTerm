@@ -13,6 +13,8 @@ LD_FLAGS_DEBUG=""
 LD_FLAGS_REL="-flto"
 LD_LIBS="-lGL -ldl -L/usr/local/lib -Wl,-rpath,/usr/local/lib -Wl,--enable-new-dtags -pthread -lSDL2"
 
+CXX_FLAGS_LIB="$CXX_FLAGS $CXX_FLAGS_REL"
+
 while getopts "dr" ARG; do
     case $ARG in
     d)
@@ -44,12 +46,12 @@ then
 fi
 
 echo "CC gl3w.c"
-$CC -c $CXX_FLAGS ../src/gl3w.c -o glfw.c.o
+$CC -c $CXX_FLAGS_LIB ../src/gl3w.c -o glfw.c.o
 
 for i in ../src/imgui*.cpp; do
     [ -f "$i" ] || break
     echo "CXX $(basename $i)"
-	$CXX -c $CXX_FLAGS $i -o $(basename $i).o
+	$CXX -c $CXX_FLAGS_LIB $i -o $(basename $i).o
 done
 
 echo -n "Linking "

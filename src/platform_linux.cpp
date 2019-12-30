@@ -6,10 +6,33 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <dirent.h> 
+#include <stdio.h> 
 
 #include <stdarg.h>
 
 #define MAX_PATH (4096)
+
+PLATFORM_GET_DUMMY_TARGET(PlatformGetDummyTarget)
+{
+    // This targets the USB port on my PC, maybe in the future try to guess what the correct port is
+    char *target = "/dev/usbtty0";
+    
+    return target;
+}
+
+PLATFORM_SLEEP_MS(PlatformSleepMS)
+{
+    struct timespec ts;
+    int res;
+
+    ts.tv_sec  = millis / 1000;
+    ts.tv_nsec = (millis % 1000) * 1000000;
+
+    do {
+        res = nanosleep(&ts, &ts);
+    } while (res && errno == EINTR);
+}
 
 PLATFORM_GET_TIME(PlatformGetTime)
 {
@@ -37,6 +60,68 @@ PLATFORM_TIME_TO_MS(PlatformTimeToMS)
     double result = (double) time / 1000.0;
 
     return (double) result;
+}
+
+PLATFORM_DIR_ITERATOR(PlatformDirectoryIterator)
+{
+    PlatformFileIterator result = {};
+
+    DIR *dir = opendir(path);
+    struct dirent *entry = readdir(dir);
+
+    if (dir && entry)
+    {
+        result._platform   = (void*) dir;
+        result.currentFile = (PlatformFileIndex*) entry;
+
+        result.isValid = true;
+    }
+    else
+    {
+        result.isValid = false;
+    }
+
+    return result;
+}
+
+PLATFORM_DIR_ITERATOR_NEXT(PlatformDirectoryIteratorNext)
+{
+    DIR *dir = (DIR*) iter->_platform;
+    struct dirent *entry = (struct dirent*) iter->currentFile;
+
+    entry = readdir(dir);
+
+    if (entry)
+    {
+        return iter->currentFile;
+    }
+
+    return 0;
+}
+
+PLATFORM_DIR_ITERATOR_CLOSE(PlatformDirectoryIteratorClose)
+{
+    if (iter->isValid)
+    {
+        closedir((DIR*) iter->_platform);
+    }
+}
+
+PLATFORM_FILE_INDEX_GET_NAME(PlatformFileIndexGetName)
+{
+    struct dirent *entry = (struct dirent*) file;
+
+    return entry->d_name;
+}
+
+PLATFORM_FILE_INDEX_GET_SIZE(PlatformFileIndexGetSize)
+{
+    return 0;
+}
+
+PLATFORM_FILE_INDEX_IS_DIR(PlatformFileIndexIsDir)
+{
+    return 0;
 }
 
 PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)

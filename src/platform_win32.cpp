@@ -52,7 +52,7 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
     return result;
 }
 
- PLATFORM_DIR_ITERATOR(PlatformDirectoryIterator)
+PLATFORM_DIR_ITERATOR(PlatformDirectoryIterator)
 {
     PlatformFileIterator result = {};
     
@@ -86,7 +86,6 @@ PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
     {
         result.isValid = false;
     }
-    
     
     return result;
 }
