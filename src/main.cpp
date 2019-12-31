@@ -184,8 +184,7 @@ main(int argc, char **argv)
                         
                         InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_UPLOAD);
                         InterfaceWriteU32(interface, file.size);
-                        
-                            //InterfaceWrite(interface, file.contents, file.size);
+                            InterfaceWrite(interface, file.contents, file.size);
                         
                         PlatformFreeFileContents(&file);
                     }
