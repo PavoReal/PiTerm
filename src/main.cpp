@@ -15,6 +15,7 @@
 #include "PiTerm.h"
 #include "Bootloader.h"
 
+#define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
 inline void
 AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
 {
@@ -38,15 +39,19 @@ AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
 
     va_end(args);
 }
-#define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
-
 
 inline int
 InterfaceWriteU32(Interface interface, u32 data) 
 {
     return InterfaceWrite(interface, (u8*) &data, 4);
 }
-#define InterfaceWriteCommand(i,d) InterfaceWriteU32(i, d)
+
+#define InterfaceWriteCommand(i,d) InterfaceWriteU8(i, d)
+inline int
+InterfaceWriteU8(Interface interface, u8 data) 
+{
+    return InterfaceWrite(interface, (u8*) &data, 1);
+}
 
 int
 main(int argc, char **argv)
@@ -157,7 +162,7 @@ main(int argc, char **argv)
         TermPrintf(term, "RX Rate: %d", bitsPerSecond);
             TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
             
-#if defined(DEBUG)
+#if defined(DEBUG) && 0
             TermPrintf(term, "Frame time: %lf ms", lastFrameTime);
             #endif
 
@@ -177,8 +182,8 @@ main(int argc, char **argv)
                     {
                         AppendToConsoleBuffer(">>> Bootloader loaded file %s with size %u bytes <<<\n", targetFilePath, file.size);
                         
-                        
-                        
+                        InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_UPLOAD);
+                        InterfaceWriteU32(interface, file.size);
                         
                             //InterfaceWrite(interface, file.contents, file.size);
                         
@@ -224,9 +229,7 @@ main(int argc, char **argv)
             strcpy((char*) toSend, (char*) txBuffer);
             toSend[sizeToSend - 1] = '\0';
                 
-                InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_ECHO_SIZE);
-                InterfaceWriteU32(interface, sizeToSend);
-                
+                InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_ECHO);
             InterfaceWrite(interface, toSend, sizeToSend);
 
             free(toSend);
