@@ -13,6 +13,21 @@
 
 #define MAX_PATH (4096)
 
+PLATFORM_READ_FILE_CONTENTS(PlatformReadFileContents)
+{
+    FileContents result = {};
+    
+    return result;
+}
+
+PLATFORM_FREE_FILE_CONTENTS(PlatformFreeFileContents)
+{
+    if (file->contents)
+    {
+        free(file->contents);
+    }
+}
+
 PLATFORM_GET_DUMMY_TARGET(PlatformGetDummyTarget)
 {
     // This targets the USB port on my PC, maybe in the future try to guess what the correct port is
@@ -87,11 +102,11 @@ PLATFORM_DIR_ITERATOR(PlatformDirectoryIterator)
 PLATFORM_DIR_ITERATOR_NEXT(PlatformDirectoryIteratorNext)
 {
     DIR *dir = (DIR*) iter->_platform;
-    struct dirent *entry = (struct dirent*) iter->currentFile;
+    struct dirent *entry = readdir(dir);
 
-    entry = readdir(dir);
+    iter->currentFile = (PlatformFileIndex*) entry;
 
-    if (entry)
+    if (iter->currentFile)
     {
         return iter->currentFile;
     }
@@ -121,7 +136,9 @@ PLATFORM_FILE_INDEX_GET_SIZE(PlatformFileIndexGetSize)
 
 PLATFORM_FILE_INDEX_IS_DIR(PlatformFileIndexIsDir)
 {
-    return 0;
+    struct dirent *entry = (struct dirent*) file;
+
+    return (entry->d_type == DT_DIR);
 }
 
 PLATFORM_GET_EXE_DIRECTORY(PlatformGetEXEDirectory)
