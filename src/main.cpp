@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include "PiTerm.h"
 #include "Bootloader.h"
+#include "libsha1.h"
 
 #define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
 inline void
@@ -51,6 +52,13 @@ inline int
 InterfaceWriteU8(Interface interface, u8 data) 
 {
     return InterfaceWrite(interface, (u8*) &data, 1);
+}
+
+inline void
+InterfaceEcho(Interface interface, const char *str)
+{
+    InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_ECHO);
+    InterfaceWrite(interface, (u8*) str, (u32) strlen(str) + 1);
 }
 
 int
@@ -180,11 +188,25 @@ main(int argc, char **argv)
                     
                     if (file.size)
                     {
-                        AppendToConsoleBuffer(">>> Bootloader loaded file %s with size %u bytes <<<\n", targetFilePath, file.size);
+                        AppendToConsoleBuffer(">>> Loaded file %s with size %u bytes <<<\n", targetFilePath, file.size);
+                        
+                        u8 checksum[SHA1_DIGEST_SIZE];
+                        sha1(checksum, file.contents, file.size);
+                            
+                        char tmpBuffer[4096];
+                        stbsp_sprintf(tmpBuffer, "0x");
+                        
+                        for (int i = 0; i < SHA1_DIGEST_SIZE; ++i)
+                        {
+                            stbsp_sprintf(tmpBuffer + strlen(tmpBuffer), "%x%x", checksum[i] / 16, checksum[i] % 16);
+                        }
+                        
+                        AppendToConsoleBuffer(">>> File checksum %s <<<\n", tmpBuffer);
                         
                         InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_UPLOAD);
                         InterfaceWriteU32(interface, file.size);
-                            InterfaceWrite(interface, file.contents, file.size);
+                        InterfaceWrite(interface, checksum, SHA1_DIGEST_SIZE);
+//InterfaceWrite(interface, file.contents, file.size);
                         
                         PlatformFreeFileContents(&file);
                     }
@@ -228,8 +250,7 @@ main(int argc, char **argv)
             strcpy((char*) toSend, (char*) txBuffer);
             toSend[sizeToSend - 1] = '\0';
                 
-                InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_ECHO);
-            InterfaceWrite(interface, toSend, sizeToSend);
+                InterfaceEcho(interface, (char*) toSend);
 
             free(toSend);
 
