@@ -9,7 +9,7 @@ PLATFORM_READ_FILE_CONTENTS(PlatformReadFileContents)
 {
     FileContents result = {};
     
-        HANDLE handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     
     if (handle != INVALID_HANDLE_VALUE)
     {
@@ -43,7 +43,7 @@ PLATFORM_READ_FILE_CONTENTS(PlatformReadFileContents)
             result.contents = 0;
         }
         
-    CloseHandle(handle);
+        CloseHandle(handle);
     }
     
     return result;
