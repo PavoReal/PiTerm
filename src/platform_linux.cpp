@@ -109,20 +109,23 @@ PLATFORM_DIR_ITERATOR(PlatformDirectoryIterator)
     PlatformFileIterator result = {};
 
     DIR *dir = opendir(path);
-    struct dirent *entry = readdir(dir);
-
-    if (dir && entry)
+    if (dir)
     {
-        result._platform   = (void*) dir;
-        result.currentFile = (PlatformFileIndex*) entry;
+        struct dirent *entry = readdir(dir);
 
-        result.isValid = true;
-    }
-    else
-    {
-        result.isValid = false;
-    }
+        if (dir && entry)
+        {
+            result._platform   = (void*) dir;
+            result.currentFile = (PlatformFileIndex*) entry;
 
+            result.isValid = true;
+        }
+        else
+        {
+            result.isValid = false;
+        }    
+    }
+    
     return result;
 }
 
