@@ -158,7 +158,12 @@ PLATFORM_FILE_INDEX_GET_NAME(PlatformFileIndexGetName)
 
 PLATFORM_FILE_INDEX_GET_SIZE(PlatformFileIndexGetSize)
 {
-    return 0;
+    struct dirent *entry = (struct dirent*) file;
+
+    struct stat st;
+    stat(entry->d_name, &st);
+
+    return st.st_size;
 }
 
 PLATFORM_FILE_INDEX_IS_DIR(PlatformFileIndexIsDir)
