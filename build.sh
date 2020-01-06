@@ -1,4 +1,4 @@
-#! /bin/bash 
+#! /bin/bash
 
 CC=gcc
 CXX=g++
@@ -44,6 +44,9 @@ if [ ! $? -eq 0 ]
 then
 	exit 1
 fi
+
+echo "CC sha1.c"
+$CC -c $CXX_FLAGS_LIB ../src/sha1.c -o sha1.c.o
 
 echo "CC gl3w.c"
 $CC -c $CXX_FLAGS_LIB ../src/gl3w.c -o glfw.c.o

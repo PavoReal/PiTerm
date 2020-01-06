@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dirent.h> 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <stdio.h> 
 
 #include <stdarg.h>
@@ -17,6 +20,30 @@ PLATFORM_READ_FILE_CONTENTS(PlatformReadFileContents)
 {
     FileContents result = {};
     
+    int fd = open(path, O_RDONLY);
+
+    if (fd != -1)
+    {
+        struct stat st;
+        fstat(fd, &st);
+
+        size_t fileSize = st.st_size;
+
+        result.contents = (u8*) malloc(fileSize);
+        result.size = (u32) fileSize;
+
+        size_t bytesRead = 0;
+
+        do
+        {
+            bytesRead += read(fd, result.contents, fileSize);
+
+        } while (bytesRead < fileSize);
+
+
+        close(fd);
+    }
+
     return result;
 }
 
