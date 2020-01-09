@@ -16,6 +16,12 @@
 #include "Bootloader.h"
 #include "libsha1.h"
 
+#if defined(DEBUG)
+#define DEBUGAppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
+#else
+#define DEBUGAppendToConsoleBuffer(...)
+#endif
+
 #define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
 inline void
 AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
@@ -68,11 +74,21 @@ InterfaceWaitForAWK(Interface interface)
     
     BootloaderCommand rx = BOOTLOADER_COMMAND_UNKNOWN;
     
+    u32 timeOut = 0;
+
     u32 read;
     while (!(read = InterfaceRead(interface, &rx, sizeof(BootloaderCommand))))
     {
         // Do nothing
         PlatformSleepMS(1);
+
+        timeOut += 1;
+
+        if (timeOut >= PITERM_UPLOAD_TIMEOUT)
+        {
+            error = true;
+            break;
+        }
     }
     
     if (rx != BOOTLOADER_COMMAND_AWK)
@@ -225,6 +241,7 @@ main(int argc, char **argv)
                         u32 chunksToSend = (file.size / BOOTLOADER_CHUNK_SIZE) + 1;
                         
                         AppendToConsoleBuffer(">>> Loaded file %s with size %u bytes, sending in %u chunk(s) <<<\n", targetFilePath, file.size, chunksToSend);
+                        AppendToConsoleBuffer(">>> Expect upload to take about %.2f seconds <<<\n", (float) ((float) file.size / (float) KILOBYTES(10)));
                         
                         u8 totalChecksum[SHA1_DIGEST_SIZE];
                         sha1(totalChecksum, file.contents, file.size);
@@ -247,7 +264,7 @@ main(int argc, char **argv)
                         }
                         else
                         {
-                            AppendToConsoleBuffer(">> Good awk -- upload command <<<\n");
+                            DEBUGAppendToConsoleBuffer(">> Good awk -- upload command <<<\n");
                         }
                         
                         InterfaceWriteU32(interface, file.size);
@@ -258,7 +275,7 @@ main(int argc, char **argv)
                         }
                         else
                         {
-                            AppendToConsoleBuffer(">> Good awk -- file size <<<\n");
+                            DEBUGAppendToConsoleBuffer(">> Good awk -- file size <<<\n");
                         }
                         
                         InterfaceWrite(interface, totalChecksum, SHA1_DIGEST_SIZE);
@@ -269,9 +286,8 @@ main(int argc, char **argv)
                         }
                         else
                         {
-                            AppendToConsoleBuffer(">> Good awk -- whole chucksum <<<\n");
+                            DEBUGAppendToConsoleBuffer(">> Good awk -- whole chucksum <<<\n");
                         }
-                        
                         
                         while (chunk < chunksToSend)
                         {
@@ -289,7 +305,6 @@ main(int argc, char **argv)
                             *tmpBuffer = '\0';
                             
                             SHA1ChecksumToString(tmpBuffer, checksum);
-                            
                             AppendToConsoleBuffer(">>> Sending chunk %u with size %u --> 0x%s <<<\n", chunk, sizeToSend, tmpBuffer);
                             
                             InterfaceWrite(interface, checksum, SHA1_DIGEST_SIZE);
@@ -297,11 +312,12 @@ main(int argc, char **argv)
                             {
                                 AppendToConsoleBuffer(">>> Error sending file checksum for chunk %u... <<<\n", chunk);
                                 AppendToConsoleBuffer(">>> Retrying (%u / %u)... <<<\n", ++retryCount, BOOTLOADER_RETRY_MAX);
+
                                 continue;
-                                }
+                            }
                             else
                             {
-                                AppendToConsoleBuffer(">>> Good awk -- checksum  <<<\n");
+                                DEBUGAppendToConsoleBuffer(">>> Good awk -- checksum  <<<\n");
                                 retryCount = 0;
                             }
                             
@@ -313,13 +329,13 @@ main(int argc, char **argv)
                             }
                             else
                             {
-                                AppendToConsoleBuffer(">>> Good awk -- chunk %u <<<\n", chunk);
+                                DEBUGAppendToConsoleBuffer(">>> Good awk -- chunk %u <<<\n", chunk);
+                                
                                 fileSizeSent += sizeToSend;
                                 retryCount = 0;
                                 chunk += 1;
+                                fileIndex += sizeToSend;
                             }
-                            
-                            fileIndex += sizeToSend;
                         }
                         
                         doneUploading:
@@ -347,17 +363,18 @@ main(int argc, char **argv)
         }
         
         {
+
         if (TermBodyStart(term) == (PlatformTerminalResult_ClearConsole))
         {
             consoleBufferSize = 0;
-            }
+        }
 
         TermPrintBuffer(term, consoleBuffer, consoleBufferSize);
         if (TermInputText(term, "", (char*) txBuffer, READ_BUFFER_SIZE, PlatformTerminalInputTextFlags_AutoSelectAll | PlatformTerminalInputTextFlags_EnterReturnsTrue))
         {
             s32 len = (s32) strlen((char*) txBuffer);
 
-                AppendToConsoleBuffer(">>> %.*s\n", len, (char*) txBuffer);
+            AppendToConsoleBuffer(">>> %.*s\n", len, (char*) txBuffer);
 
             u32 sizeToSend = len + 2;
             u8 *toSend = (u8*) malloc(sizeToSend);
@@ -366,7 +383,7 @@ main(int argc, char **argv)
                 toSend[sizeToSend - 2] = '\n';
                 toSend[sizeToSend - 1] = '\0';
                 
-                InterfaceEcho(interface, (char*) toSend);
+            InterfaceEcho(interface, (char*) toSend);
 
             free(toSend);
 
@@ -377,12 +394,14 @@ main(int argc, char **argv)
         }
 
         if (bytesRead)
-            {
-                AppendToConsoleBuffer("%.*s", bytesRead, readBuffer);
+        {
+            AppendToConsoleBuffer("%.*s", bytesRead, readBuffer);
         }
 
             TermBodyStop(term);
+
         }
+
         TermFrameStop(term);
 
         TimeCount endTime = PlatformGetTime();
