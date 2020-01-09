@@ -330,7 +330,7 @@ main(int argc, char **argv)
                             else
                             {
                                 DEBUGAppendToConsoleBuffer(">>> Good awk -- chunk %u <<<\n", chunk);
-                                
+
                                 fileSizeSent += sizeToSend;
                                 retryCount = 0;
                                 chunk += 1;
