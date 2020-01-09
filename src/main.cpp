@@ -83,6 +83,15 @@ InterfaceWaitForAWK(Interface interface)
     return error;
 }
 
+inline void
+SHA1ChecksumToString(char *str, u8 *checksum)
+{
+    for (int i = 0; i < SHA1_DIGEST_SIZE; ++i)
+    {
+        stbsp_sprintf(str + strlen(str), "%x%x", checksum[i] / 16, checksum[i] % 16);
+    }
+}
+
 int
 main(int argc, char **argv)
 {
@@ -118,7 +127,7 @@ main(int argc, char **argv)
     u8 *consoleBuffer = (u8*) malloc(CONSOLE_BUFFER_SIZE);
     u32 consoleBufferSize = 0;
 
-    Interface interface = InterfaceInit(&error, port);
+    Interface interface = InterfaceInit(&error, port, INTERFACE_BAUD_115200);
 
     bool interfaceGood = (error == 0);
     if (!interfaceGood)
@@ -213,60 +222,108 @@ main(int argc, char **argv)
                     
                     if (file.size)
                     {
-                        AppendToConsoleBuffer(">>> Loaded file %s with size %u bytes <<<\n", targetFilePath, file.size);
-                        
-                        u8 checksum[SHA1_DIGEST_SIZE];
-                        sha1(checksum, file.contents, file.size);
-                            
                         char tmpBuffer[4096];
-                        stbsp_sprintf(tmpBuffer, "0x");
+                        u32 chunksToSend = (file.size / BOOTLOADER_CHUNK_SIZE) + 1;
                         
-                        for (int i = 0; i < SHA1_DIGEST_SIZE; ++i)
-                        {
-                            stbsp_sprintf(tmpBuffer + strlen(tmpBuffer), "%x%x", checksum[i] / 16, checksum[i] % 16);
-                        }
+                        AppendToConsoleBuffer(">>> Loaded file %s with size %u bytes, sending in %u chunk(s) <<<\n", targetFilePath, file.size, chunksToSend);
                         
-                        AppendToConsoleBuffer(">>> File checksum %s <<<\n", tmpBuffer);
+                        u8 totalChecksum[SHA1_DIGEST_SIZE];
+                        sha1(totalChecksum, file.contents, file.size);
+                        
+                        
+                        *tmpBuffer = '\0';
+                        
+                        SHA1ChecksumToString(tmpBuffer, totalChecksum);
+                        AppendToConsoleBuffer(">>> Whole checksum 0x%s <<<\n", tmpBuffer);
                         
                         InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_UPLOAD);
                         if (InterfaceWaitForAWK(interface))
                         {
                             AppendToConsoleBuffer(">>> Error sending BOOTLOADER_COMMAND_UPLOAD... <<<\n");
+                            goto doneUploading;
                         }
-#if defined(DEBUG)
                         else
                         {
                             AppendToConsoleBuffer(">> Good awk -- upload command <<<\n");
                         }
-                        #endif
                         
                         InterfaceWriteU32(interface, file.size);
                         if (InterfaceWaitForAWK(interface))
                         {
                             AppendToConsoleBuffer(">>> Error sending file size... <<<\n");
+                            goto doneUploading;
                         }
-#if defined(DEBUG)
                         else
                         {
                             AppendToConsoleBuffer(">> Good awk -- file size <<<\n");
                         }
-#endif
                         
-                        
-                        InterfaceWrite(interface, checksum, SHA1_DIGEST_SIZE);
+                        InterfaceWrite(interface, totalChecksum, SHA1_DIGEST_SIZE);
                         if (InterfaceWaitForAWK(interface))
                         {
-                            AppendToConsoleBuffer(">>> Error sending file checksum... <<<\n");
+                            AppendToConsoleBuffer(">>> Error sending whole checksum... <<<\n");
+                            goto doneUploading;
                         }
-#if defined(DEBUG)
                         else
                         {
-                            AppendToConsoleBuffer(">> Good awk -- checksum  <<<\n");
+                            AppendToConsoleBuffer(">> Good awk -- whole chucksum <<<\n");
                         }
-#endif
                         
-// InterfaceWrite(interface, file.contents, file.size);
+                        u8 *fileIndex    = file.contents;
+                        u8 retryCount    = 0;
+                        u32 chunk        = 0;
+                        u32 fileSizeSent = 0;
                         
+                        while (chunk < chunksToSend)
+                        {
+                            if (retryCount >= BOOTLOADER_RETRY_MAX)
+                            {
+                                AppendToConsoleBuffer(">>> Could not send file! Something went wrong, check the connection <<<");
+                                break;
+                            }
+                            
+                            u32 sizeToSend = min(BOOTLOADER_CHUNK_SIZE, file.size - fileSizeSent);
+                            
+                            u8 checksum[SHA1_DIGEST_SIZE];
+                            sha1(checksum, fileIndex, sizeToSend);
+                            
+                            *tmpBuffer = '\0';
+                            
+                            SHA1ChecksumToString(tmpBuffer, checksum);
+                            
+                            AppendToConsoleBuffer(">>> Sending chunk %u with size %u --> 0x%s <<<\n", chunk, sizeToSend, tmpBuffer);
+                            
+                            InterfaceWrite(interface, checksum, SHA1_DIGEST_SIZE);
+                            if (InterfaceWaitForAWK(interface))
+                            {
+                                AppendToConsoleBuffer(">>> Error sending file checksum for chunk %u... <<<\n", chunk);
+                                AppendToConsoleBuffer(">>> Retrying (%u / %u)... <<<\n", ++retryCount, BOOTLOADER_RETRY_MAX);
+                                continue;
+                                }
+                            else
+                            {
+                                AppendToConsoleBuffer(">>> Good awk -- checksum  <<<\n");
+                                retryCount = 0;
+                            }
+                            
+                            InterfaceWrite(interface, fileIndex, sizeToSend);
+                            if (InterfaceWaitForAWK(interface))
+                            {
+                                AppendToConsoleBuffer(">>> Error sending chunk %u... <<<\n", chunk);
+                                AppendToConsoleBuffer(">>> Retrying (%u / %u)... <<<\n", ++retryCount, BOOTLOADER_RETRY_MAX);
+                            }
+                            else
+                            {
+                                AppendToConsoleBuffer(">>> Good awk -- chunk %u <<<\n", chunk);
+                                fileSizeSent += sizeToSend;
+                                retryCount = 0;
+                                chunk += 1;
+                            }
+                            
+                            fileIndex += sizeToSend;
+                        }
+                        
+                        doneUploading:
                         PlatformFreeFileContents(&file);
                     }
                     else
