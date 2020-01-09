@@ -18,6 +18,10 @@
 #define KILOBYTES(a) (1024 * (a))
 #define MEGABYTES(a) (1024 * KILOBYTES(a))
 
+#if defined(BAUD_9600) && defined(BAUD_115200)
+#error "Can't have more then 1 buad rate defined"
+#endif
+
 typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;

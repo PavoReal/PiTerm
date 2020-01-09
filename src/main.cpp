@@ -61,6 +61,28 @@ InterfaceEcho(Interface interface, const char *str)
     InterfaceWrite(interface, (u8*) str, (u32) strlen(str) + 1);
 }
 
+inline bool
+InterfaceWaitForAWK(Interface interface)
+{
+    bool error = false;
+    
+    BootloaderCommand rx = BOOTLOADER_COMMAND_UNKNOWN;
+    
+    u32 read;
+    while (!(read = InterfaceRead(interface, &rx, sizeof(BootloaderCommand))))
+    {
+        // Do nothing
+        PlatformSleepMS(1);
+    }
+    
+    if (rx != BOOTLOADER_COMMAND_AWK)
+    {
+        error = true;
+    }
+    
+    return error;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -89,6 +111,7 @@ main(int argc, char **argv)
 
 #define READ_BUFFER_SIZE (1024)
     u8 readBuffer[READ_BUFFER_SIZE];
+    
     u8 txBuffer[READ_BUFFER_SIZE] = {};
 
 #define CONSOLE_BUFFER_SIZE (MEGABYTES(10))
@@ -166,8 +189,10 @@ main(int argc, char **argv)
 
         int bitsPerSecond = bytesRead * 8;
 
-        TermPrintf(term, "BAUD: 115200");
-        TermPrintf(term, "RX Rate: %d", bitsPerSecond);
+            TermPrintf(term, "BAUD: 115200");
+#if defined(DEBUG)
+            TermPrintf(term, "RX Rate: %d", bitsPerSecond);
+            #endif
             TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
             
 #if defined(DEBUG) && 0
@@ -204,9 +229,43 @@ main(int argc, char **argv)
                         AppendToConsoleBuffer(">>> File checksum %s <<<\n", tmpBuffer);
                         
                         InterfaceWriteCommand(interface, BOOTLOADER_COMMAND_UPLOAD);
+                        if (InterfaceWaitForAWK(interface))
+                        {
+                            AppendToConsoleBuffer(">>> Error sending BOOTLOADER_COMMAND_UPLOAD... <<<\n");
+                        }
+#if defined(DEBUG)
+                        else
+                        {
+                            AppendToConsoleBuffer(">> Good awk -- upload command <<<\n");
+                        }
+                        #endif
+                        
                         InterfaceWriteU32(interface, file.size);
+                        if (InterfaceWaitForAWK(interface))
+                        {
+                            AppendToConsoleBuffer(">>> Error sending file size... <<<\n");
+                        }
+#if defined(DEBUG)
+                        else
+                        {
+                            AppendToConsoleBuffer(">> Good awk -- file size <<<\n");
+                        }
+#endif
+                        
+                        
                         InterfaceWrite(interface, checksum, SHA1_DIGEST_SIZE);
-//InterfaceWrite(interface, file.contents, file.size);
+                        if (InterfaceWaitForAWK(interface))
+                        {
+                            AppendToConsoleBuffer(">>> Error sending file checksum... <<<\n");
+                        }
+#if defined(DEBUG)
+                        else
+                        {
+                            AppendToConsoleBuffer(">> Good awk -- checksum  <<<\n");
+                        }
+#endif
+                        
+// InterfaceWrite(interface, file.contents, file.size);
                         
                         PlatformFreeFileContents(&file);
                     }
@@ -244,11 +303,12 @@ main(int argc, char **argv)
 
                 AppendToConsoleBuffer(">>> %.*s\n", len, (char*) txBuffer);
 
-            u32 sizeToSend = len + 1;
+            u32 sizeToSend = len + 2;
             u8 *toSend = (u8*) malloc(sizeToSend);
 
             strcpy((char*) toSend, (char*) txBuffer);
-            toSend[sizeToSend - 1] = '\0';
+                toSend[sizeToSend - 2] = '\n';
+                toSend[sizeToSend - 1] = '\0';
                 
                 InterfaceEcho(interface, (char*) toSend);
 
@@ -262,17 +322,7 @@ main(int argc, char **argv)
 
         if (bytesRead)
             {
-            time_t t     = time(NULL);
-            struct tm tm = *localtime(&t);
-
-                AppendToConsoleBuffer("[%d:%d:%d] %.*s",  
-                                        tm.tm_hour, tm.tm_min, tm.tm_sec, 
-                                        bytesRead, readBuffer);
-                
-            if (consoleBuffer[consoleBufferSize - 1] != '\n')
-            {
-                    AppendToConsoleBuffer("\n");
-            }
+                AppendToConsoleBuffer("%.*s", bytesRead, readBuffer);
         }
 
             TermBodyStop(term);

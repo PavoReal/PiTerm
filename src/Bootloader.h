@@ -9,6 +9,9 @@ enum _BootloaderCommand
     BOOTLOADER_COMMAND_PRINT_INFO, // Print some happy message
     BOOTLOADER_COMMAND_ECHO,       // Echo until a zero byte is sent
     
+    BOOTLOADER_COMMAND_AWK, // Okay to proceed 
+    BOOTLOADER_COMMAND_ERR,
+    
     BOOTLOADER_COMMAND_UPLOAD // Send 4 bytes for the size of the kernel then the data
 };
 
