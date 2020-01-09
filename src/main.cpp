@@ -282,7 +282,7 @@ main(int argc, char **argv)
                                 break;
                             }
                             
-                            u32 sizeToSend = min(BOOTLOADER_CHUNK_SIZE, file.size - fileSizeSent);
+                            u32 sizeToSend = MIN(BOOTLOADER_CHUNK_SIZE, file.size - fileSizeSent);
                             
                             u8 checksum[SHA1_DIGEST_SIZE];
                             sha1(checksum, fileIndex, sizeToSend);

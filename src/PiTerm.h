@@ -18,6 +18,9 @@
 #define KILOBYTES(a) (1024 * (a))
 #define MEGABYTES(a) (1024 * KILOBYTES(a))
 
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+
+
 #if defined(BAUD_9600) && defined(BAUD_115200)
 #error "Can't have more then 1 buad rate defined"
 #endif
