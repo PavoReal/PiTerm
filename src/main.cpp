@@ -196,10 +196,9 @@ main(int argc, char **argv)
             TermInputText(term, "Port", port, PORT_MAX_LENGTH, PlatformTerminalInputTextFlags_CharsNoBlank);
         }
 
-        int bitsPerSecond = bytesRead * 8;
-
             TermPrintf(term, "BAUD: 115200");
 #if defined(DEBUG)
+            int bitsPerSecond = bytesRead * 8;
             TermPrintf(term, "RX Rate: %d", bitsPerSecond);
             #endif
             TermPrintf(term, "Console Size: %.1f / %.1f KB", (float) consoleBufferSize / 1024.0f, (float) (CONSOLE_BUFFER_SIZE) / 1024.0f);
