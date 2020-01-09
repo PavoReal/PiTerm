@@ -230,6 +230,10 @@ main(int argc, char **argv)
                         u8 totalChecksum[SHA1_DIGEST_SIZE];
                         sha1(totalChecksum, file.contents, file.size);
                         
+                        u8 *fileIndex    = file.contents;
+                        u8 retryCount    = 0;
+                        u32 chunk        = 0;
+                        u32 fileSizeSent = 0;
                         
                         *tmpBuffer = '\0';
                         
@@ -269,10 +273,6 @@ main(int argc, char **argv)
                             AppendToConsoleBuffer(">> Good awk -- whole chucksum <<<\n");
                         }
                         
-                        u8 *fileIndex    = file.contents;
-                        u8 retryCount    = 0;
-                        u32 chunk        = 0;
-                        u32 fileSizeSent = 0;
                         
                         while (chunk < chunksToSend)
                         {
