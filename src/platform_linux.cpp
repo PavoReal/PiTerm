@@ -58,7 +58,7 @@ PLATFORM_FREE_FILE_CONTENTS(PlatformFreeFileContents)
 PLATFORM_GET_DUMMY_TARGET(PlatformGetDummyTarget)
 {
     // This targets the USB port on my PC, maybe in the future try to guess what the correct port is
-    char *target = "/dev/usbtty0";
+    char *target = "/dev/ttyUSB0";
     
     return target;
 }
@@ -254,7 +254,7 @@ PLATFORM_INTERFACE_SET_ATTRIBS(InterfaceSetAttribs)
                                     // no canonical processing
     tty.c_oflag = 0;                // no remapping, no delays
     tty.c_cc[VMIN]  = 0;            // read doesn't block
-    tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
+    tty.c_cc[VTIME] = 0;            // 0.5 seconds read timeout
 
     tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
 
