@@ -288,7 +288,7 @@ PLATFORM_INTERFACE_SET_BLOCKING(InterfaceSetBlocking)
     }
 
     tty.c_cc[VMIN]  = shouldBlock ? 1 : 0;
-    tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
+    tty.c_cc[VTIME] = 0;            // 0.5 seconds read timeout
 
     if (tcsetattr(interface->fd, TCSANOW, &tty) != 0)
     {
