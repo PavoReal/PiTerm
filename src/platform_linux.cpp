@@ -313,7 +313,7 @@ PLATFORM_INTERFACE_INIT(InterfaceInit)
     }
 
     int error = InterfaceSetAttribs(interface, baud);
-    error |= InterfaceSetBlocking(interface, false);
+    //error |= InterfaceSetBlocking(interface, false);
 
     if (error)
     {
