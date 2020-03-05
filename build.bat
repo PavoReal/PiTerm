@@ -23,7 +23,7 @@ del *.obj 2> NUL
 copy ..\libs\win32\release\SDL2.lib .\ > NUL
 copy ..\libs\win32\release\SDL2.dll .\ > NUL
 
-cl /c %CPP_FLAGS% %CPP_FLAGS_DEBUG% ..\src\main.cpp 
+cl /c %CPP_FLAGS% %CPP_FLAGS_REL% ..\src\main.cpp 
 if %ERRORLEVEL% neq 0 goto done
 
 cl /c %CPP_FLAGS% %CPP_FLAGS_REL% ..\src\sha1.c
