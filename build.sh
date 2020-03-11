@@ -51,7 +51,7 @@ $CC -c $CXX_FLAGS_LIB ../src/sha1/sha1.c -o sha1.c.o
 echo "CC gl3w.c"
 $CC -c $CXX_FLAGS_LIB ../src/gl/gl3w.c -o glfw.c.o
 
-for i in ../src/imgui*.cpp; do
+for i in ../src/imgui/imgui*.cpp; do
     [ -f "$i" ] || break
     echo "CXX $(basename $i)"
 	$CXX -c $CXX_FLAGS_LIB $i -o $(basename $i).o
