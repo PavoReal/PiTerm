@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <stdarg.h>
-
 #include "gl/gl3w.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -48,8 +45,10 @@ PLATFORM_TERM_INIT(TermInit)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+    
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    
     io.IniFilename = "PiTerm.ini";
     
     ImGui::StyleColorsLight();
@@ -62,7 +61,6 @@ PLATFORM_TERM_INIT(TermInit)
     
     ImVec4* colors = style.Colors;
     colors[ImGuiCol_FrameBg]  = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
-    
     
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -134,11 +132,6 @@ PLATFORM_TERM_FRAME_START(TermFrameStart)
     ImGui_ImplSDL2_NewFrame(term->window);
     ImGui::NewFrame();
     
-    //ImGuiIO& io = ImGui::GetIO();
-    
-    //ImGui::SetNextWindowPos({0, 0});
-    //ImGui::SetNextWindowSize(io.DisplaySize);
-    
     return result;
 }
 
@@ -148,7 +141,6 @@ PLATFORM_TERM_FRAME_STOP(TermFrameStop)
     
     ImGui::Render();
     
-    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     
     glViewport(0, 0, (GLsizei) io.DisplaySize.x, (GLsizei) io.DisplaySize.y);
@@ -211,14 +203,12 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
         result = PlatformTerminalResult_ClearConsole;
     }
     
-#if 0
     ImGui::Separator();
     
     if (ImGui::Button("Export"))
     {
         // TODO
     }
-#endif
     
     ImGui::EndMenuBar();
     
@@ -230,12 +220,10 @@ PLATFORM_TERM_BODY_STOP(TermBodyStop)
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
     
-#if 0
-    if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
     {  
         ImGui::SetKeyboardFocusHere(0);
     }
-#endif
     
     ImGui::End();
     
@@ -259,8 +247,10 @@ PLATFORM_TERM_BOOTLOADER_STOP(TermBootloaderStop)
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
     
-    ImGui::End();
-    
+    if (term->openBootloader)
+    {
+        ImGui::End();
+    }
     
     return 0;
 }

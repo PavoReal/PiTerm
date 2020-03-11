@@ -227,6 +227,7 @@ main(int argc, char **argv)
         }
         
         {
+            
             if (TermBootloaderStart(term))
             {
                 char *targetFilePath = TermGetBootloaderFilePath(term);
@@ -399,7 +400,6 @@ main(int argc, char **argv)
             }
             
             TermBodyStop(term);
-            
         }
         
         TermFrameStop(term);
