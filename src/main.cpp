@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include "PiTerm.h"
 #include "Bootloader.h"
-#include "libsha1.h"
+#include "sha1/libsha1.h"
 
 #if defined(DEBUG)
 #define DEBUGAppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
@@ -115,11 +115,11 @@ main(int argc, char **argv)
     
 #define PORT_MAX_LENGTH (KILOBYTES(1))
     char *port = (char*) malloc(PORT_MAX_LENGTH + 1);
-	if (argc <= 1)
-	{
+    if (argc <= 1)
+    {
         const char *dummyTarget = PlatformGetDummyTarget();
         strcpy(port, dummyTarget);
-	}
+    }
     else
     {
         strcpy(port, argv[1]);
@@ -163,7 +163,7 @@ main(int argc, char **argv)
     {
         TimeCount startTime = PlatformGetTime();
         
-        if (TermFrameStart(term) == (PlatformTerminalResult_Fatal | PlatformTerminalResult_Quit))
+        if (TermFrameStart(term) == (PlatformTerminalResult_Quit))
         {
             running = false;
             break;
@@ -425,5 +425,5 @@ main(int argc, char **argv)
     free(consoleBuffer);
     free(port);
     
-	return 0;
+    return 0;
 }

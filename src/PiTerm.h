@@ -10,9 +10,9 @@
 #define UNUSED(a) (void) a
 
 #if defined(DEBUG)
-	#define ASSERT(a) if ((a)) { *(volatile int *)0 = 0; }
+#define ASSERT(a) if ((a)) { *(volatile int *)0 = 0; }
 #else
-	#define ASSERT(a)
+#define ASSERT(a)
 #endif
 
 #define KILOBYTES(a) (1024 * (a))
@@ -54,7 +54,7 @@ struct v4
             float z;
             float w;
         };
-
+        
         struct
         {
             float r;
@@ -62,7 +62,7 @@ struct v4
             float b;
             float a;
         };
-
+        
         float _d[4];
     };
 };
@@ -91,10 +91,10 @@ typedef u32 PlatformTerminalResult;
 enum PlatformTerminalResult_
 {
     PlatformTerminalResult_None = 0,
-
+    
     PlatformTerminalResult_Error = 1 << 0,
     PlatformTerminalResult_Fatal = 1 << 1,
-
+    
     PlatformTerminalResult_ClearConsole = 1 << 2,
     PlatformTerminalResult_Quit         = 1 << 3,
     PlatformTerminalResult_HasResult    = 1 << 4,
@@ -202,28 +202,28 @@ struct FileContents
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-#include "imgui.h"
+#include "imgui/imgui.h"
 
 struct TerminalState
 {
-	SDL_Window *window;
-	SDL_GLContext glContext;
-
+    SDL_Window *window;
+    SDL_GLContext glContext;
+    
     v4 clearColor;
-
+    
     char *bootloaderInputRootPath;
     char *bootloaderInputFilePath;
     char *bootloaderSelectedPath;
-
-	bool scrollLock;
-
+    
+    bool scrollLock;
+    
     bool openSettings;
     bool openBootloader;
 };
 
 #if defined(_WIN32)
-    #include "platform_win32.cpp"
+#include "platform_win32.cpp"
 #else
-    #include "platform_linux.cpp"
+#include "platform_linux.cpp"
 #endif
 #endif

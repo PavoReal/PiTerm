@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "gl3w.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
-#include "imgui_internal.h"
+#include "gl/gl3w.h"
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_internal.h"
 
 #include "terminal_style_edit.cpp"
 
@@ -113,6 +113,8 @@ PLATFORM_TERM_FRAME_START(TermFrameStart)
 {
     TerminalState *term = (TerminalState*) _term;
     
+    PlatformTerminalResult result = 0;
+    
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -137,7 +139,7 @@ PLATFORM_TERM_FRAME_START(TermFrameStart)
     //ImGui::SetNextWindowPos({0, 0});
     //ImGui::SetNextWindowSize(io.DisplaySize);
     
-    return 0;
+    return result;
 }
 
 PLATFORM_TERM_FRAME_STOP(TermFrameStop)
