@@ -40,5 +40,6 @@ IMGUI_IMPL_API void     ImGui_ImplOpenGL3_DestroyDeviceObjects();
 //#define IMGUI_IMPL_OPENGL_ES2     // Auto-detected on Emscripten
 //#define IMGUI_IMPL_OPENGL_ES3     // Auto-detected on iOS/Android
 
+#if !defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
 #define IMGUI_IMPL_OPENGL_LOADER_GL3W       // Default to GL3W
-
+#endif
