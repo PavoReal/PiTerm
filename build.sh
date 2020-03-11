@@ -46,10 +46,10 @@ then
 fi
 
 echo "CC sha1.c"
-$CC -c $CXX_FLAGS_LIB ../src/sha1.c -o sha1.c.o
+$CC -c $CXX_FLAGS_LIB ../src/sha1/sha1.c -o sha1.c.o
 
 echo "CC gl3w.c"
-$CC -c $CXX_FLAGS_LIB ../src/gl3w.c -o glfw.c.o
+$CC -c $CXX_FLAGS_LIB ../src/gl/gl3w.c -o glfw.c.o
 
 for i in ../src/imgui*.cpp; do
     [ -f "$i" ] || break
