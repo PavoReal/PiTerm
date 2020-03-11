@@ -23,29 +23,6 @@
 #endif
 
 #define AppendToConsoleBuffer(...) AppendToBuffer(consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE, __VA_ARGS__)
-inline void
-AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    
-    char buf[4096];
-    
-    int advance = stbsp_vsprintf(buf, fmt, args);
-    
-    u32 newSize = *bufferSize + advance;
-    
-    if (newSize > bufferMaxSize)
-    {
-        *bufferSize = 0;
-    }
-    
-    strcpy((char*) buffer + (*bufferSize), buf);
-    
-    *bufferSize += advance;
-    
-    va_end(args);
-}
 
 inline int
 InterfaceWriteU32(Interface interface, u32 data) 
@@ -365,13 +342,13 @@ main(int argc, char **argv)
         
         {
             
-            if (TermBodyStart(term) == (PlatformTerminalResult_ClearConsole))
+            if (TermBodyStart(term, consoleBuffer, &consoleBufferSize, CONSOLE_BUFFER_SIZE) == (PlatformTerminalResult_ClearConsole))
             {
                 consoleBufferSize = 0;
             }
             
             TermPrintBuffer(term, consoleBuffer, consoleBufferSize);
-            if (TermInputText(term, "", (char*) txBuffer, READ_BUFFER_SIZE, PlatformTerminalInputTextFlags_AutoSelectAll | PlatformTerminalInputTextFlags_EnterReturnsTrue))
+            if (TermInputText(term, "", (char*) txBuffer, READ_BUFFER_SIZE, PlatformTerminalInputTextFlags_EnterReturnsTrue))
             {
                 s32 len = (s32) strlen((char*) txBuffer);
                 

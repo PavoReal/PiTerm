@@ -207,7 +207,17 @@ PLATFORM_TERM_BODY_START(TermBodyStart)
     
     if (ImGui::Button("Export"))
     {
-        // TODO
+        char fileName[1024];
+        stbsp_sprintf(fileName, "export.%p.txt", PlatformGetTime());
+        
+        SDL_RWops *file = SDL_RWFromFile(fileName, "w");
+        
+        size_t w = SDL_RWwrite(file, textBuffer, 1, (size_t) *textBufferSize);
+        
+        SDL_RWclose(file);
+        
+        AppendToBuffer(textBuffer, textBufferSize, maxSize, 
+                       ">>> Exported %s with size %u <<<\n", fileName, w);
     }
     
     ImGui::EndMenuBar();
@@ -219,11 +229,6 @@ PLATFORM_TERM_BODY_STOP(TermBodyStop)
 {
     TerminalState *term = (TerminalState*) _term;
     UNUSED(term);
-    
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
-    {  
-        ImGui::SetKeyboardFocusHere(0);
-    }
     
     ImGui::End();
     

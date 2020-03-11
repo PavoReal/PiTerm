@@ -172,7 +172,7 @@ struct FileContents
 #define PLATFORM_TERM_HEADER_START(name) PlatformTerminalResult name(Term _term)
 #define PLATFORM_TERM_HEADER_STOP(name) PlatformTerminalResult name(Term _term)
 
-#define PLATFORM_TERM_BODY_START(name) PlatformTerminalResult name(Term _term)
+#define PLATFORM_TERM_BODY_START(name) PlatformTerminalResult name(Term _term, u8 *textBuffer, u32 *textBufferSize, u32 maxSize)
 #define PLATFORM_TERM_BODY_STOP(name) PlatformTerminalResult name(Term _term)
 
 #define PLATFORM_TERM_BOOTLOADER_START(name) bool name(Term _term)
@@ -198,6 +198,32 @@ struct FileContents
 #define PLATFORM_TERM_SET_BOOTLOADER_ROOT_PATH(name) PlatformTerminalResult name(Term _term, char *path)
 
 #define PLATFORM_TERM_GET_BOOTLOADER_SELECTED_PATH(name) char* name(Term _term)
+
+#include <string.h>
+
+inline void
+AppendToBuffer(u8 *buffer, u32 *bufferSize, u32 bufferMaxSize, char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    
+    char buf[4096];
+    
+    int advance = stbsp_vsprintf(buf, fmt, args);
+    
+    u32 newSize = *bufferSize + advance;
+    
+    if (newSize > bufferMaxSize)
+    {
+        *bufferSize = 0;
+    }
+    
+    strcpy((char*) buffer + (*bufferSize), buf);
+    
+    *bufferSize += advance;
+    
+    va_end(args);
+}
 
 
 #define SDL_MAIN_HANDLED
@@ -227,3 +253,4 @@ struct TerminalState
 #include "platform_linux.cpp"
 #endif
 #endif
+
